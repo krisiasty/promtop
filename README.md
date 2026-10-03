@@ -4,6 +4,8 @@ Terminal UI (TUI) for a single Prometheus endpoint. It scrapes the endpoint at a
 keeps up to 30 minutes of history in memory and shows it in six views:
 **Table, History, Graph, Heatmap, Series, Raw**.
 
+![promtop Table view: every series with current, previous, delta, window statistics and a trend](docs/screenshots/1-table.png)
+
 ## Install
 
 **Homebrew (macOS):**
@@ -102,6 +104,28 @@ History uses an estimated 512 MiB budget for ring buffers by default. With many
 series or a short scrape interval, older values may fall out of a ring before
 the selected window ends, including for pinned series. Increase the budget with
 `--history-budget 1GiB` or `--history-budget 2GiB` when more memory is available.
+
+## Screenshots
+
+**History**: every value of one series in the window, newest first, with window statistics and a distribution.
+
+![promtop History view](docs/screenshots/2-history.png)
+
+**Graph**: one series plotted over the window, with its axis and statistics.
+
+![promtop Graph view](docs/screenshots/3-graph.png)
+
+**Heatmap**: a histogram's buckets over time, with bucket shares and `histogram_quantile` estimates.
+
+![promtop Heatmap view](docs/screenshots/4-heatmap.png)
+
+**Series**: metric families with label cardinality and, for two labels, a cross table of rates.
+
+![promtop Series view](docs/screenshots/5-series.png)
+
+**Raw**: the last scrape as text, with changed samples highlighted and their deltas.
+
+![promtop Raw view](docs/screenshots/6-raw.png)
 
 ## Development
 
