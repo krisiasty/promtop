@@ -8,6 +8,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/charmbracelet/x/ansi"
 
 	"github.com/krisiasty/promtop/internal/config"
 	"github.com/krisiasty/promtop/internal/scrape"
@@ -151,7 +152,11 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		resized := m.w > 0 && msg.Width != m.w
 		m.w, m.h = msg.Width, msg.Height
+		if resized {
+			return m, resetTabStops()
+		}
 	case tea.BackgroundColorMsg:
 		m.th = newTheme(msg.IsDark())
 	case clockMsg:
@@ -219,6 +224,15 @@ func (m *Model) scrapeCmd() tea.Cmd {
 func (m *Model) nextTick() tea.Cmd {
 	d, gen := max(0, m.st.Scrape.NextTry.Sub(m.now())), m.gen
 	return tea.Tick(d, func(time.Time) tea.Msg { return tickMsg{gen} })
+}
+
+// resetTabStops sets tab stops every 8 columns again, then repaints. Bubble
+// Tea sets them once at startup and its renderer moves the cursor with tabs,
+// but terminals such as iTerm2 add no stops for columns gained by resizing:
+// a tab past the last stop lands on the right margin and wraps what follows.
+// The repaint replaces any frame drawn with tabs before the reset.
+func resetTabStops() tea.Cmd {
+	return tea.Sequence(tea.Raw(ansi.SetTabEvery8Columns), tea.ClearScreen)
 }
 
 func clockTick() tea.Cmd {
