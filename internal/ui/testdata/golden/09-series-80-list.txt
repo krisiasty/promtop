@@ -1,0 +1,36 @@
+ promtop   http://10.0.3.14:9100/metrics  ● live  every 1s · 150ms      12:36:59
+ 1 Table   2 History   3 Graph   4 Heatmap   5 Series   6 Raw
+────────────────────────────────────────────────────────────────────────────────
+╭─ families · 8/41 ────────────────────────────────────────────────────────────╮
+│  up                                      gau  —                             1│
+│  go_goroutines                           gau  —                             1│
+│  go_threads                              gau  —                             1│
+│  go_memstats_heap_alloc_bytes            gau  —                             1│
+│  process_resident_memory_bytes           gau  —                             1│
+│  process_cpu_seconds_total               ctr  —                             1│
+│  process_open_fds                        gau  —                             1│
+│▸ http_requests_total                     ctr  method, code                  8│
+│  http_request_duration_seconds           his  le                           13│
+│  http_inflight_requests                  gau  —                             1│
+│  db_pool_connections                     gau  state                         2│
+│  cache_hits_total                        ctr  —                             1│
+│  cache_misses_total                      ctr  —                             1│
+│  queue_depth                             gau  queue                         2│
+│  node_load1                              gau  —                             1│
+│  node_load5                              gau  —                             1│
+│  node_load15                             gau  —                             1│
+│  go_gc_duration_seconds                  sum  quantile                      7│
+│  go_memstats_sys_bytes                   gau  —                             1│
+│  go_memstats_stack_inuse_bytes           gau  —                             1│
+│  go_memstats_heap_objects                gau  —                             1│
+│  go_memstats_mallocs_total               ctr  —                             1│
+│  go_memstats_frees_total                 ctr  —                             1│
+│  go_gc_cycles_total                      ctr  —                             1│
+│  node_cpu_seconds_total                  ctr  cpu, mode                    16│
+│  node_memory_MemAvailable_bytes          gau  —                             1│
+╰────────────────────────────────────────────────────────────────── ▼ 15 more ─╯
+
+
+────────────────────────────────────────────────────────────────────────────────
+41 families · 99 series                           window 5m · counters as rate/s
+↑ ↓ family   PgUp/Dn page   enter open   p pause   ← → view   q quit

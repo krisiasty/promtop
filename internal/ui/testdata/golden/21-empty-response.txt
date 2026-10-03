@@ -1,0 +1,36 @@
+ promtop   http://10.0.3.14:9100/metrics  ● no data  HTTP 200 · text/plain; version=0.0.4 · 0 bytes · 0 samples                           12:37:00
+ 1 Table   2 History   3 Graph   4 Heatmap   5 Series   6 Raw
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+
+
+
+
+
+
+
+                                  ╭─ no metrics ───────────────────────────────────────────────────────────────╮
+                                  │  The endpoint responded, but the payload contains no samples.              │
+                                  │  HTTP 200 · Content-Type: text/plain; version=0.0.4 · 0 bytes              │
+                                  │                                                                            │
+                                  │  Things to check                                                           │
+                                  │  ·  is the path right? exporters usually serve /metrics                    │
+                                  │  ·  are collectors registered with the registry being served?              │
+                                  │  ·  does --match exclude everything?                                       │
+                                  │                                                                            │
+                                  │  Still scraping — views fill in as soon as series appear.                  │
+                                  ╰────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+waiting for series · still scraping every 1s                                                                        window 5m · counters as rate/s
+↑ ↓ move   PgUp/Dn page   +/- window   space pin   a all/pinned   / filter   s sort   r rate   enter details   p pause   ← → view   q quit

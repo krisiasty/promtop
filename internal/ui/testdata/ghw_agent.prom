@@ -1,0 +1,99 @@
+# HELP ghw_agent_build_info Build information about the running binary, always 1.
+# TYPE ghw_agent_build_info gauge
+ghw_agent_build_info{commit="9cca405b877ebf6318a1b91575fb863d095a3803",goversion="go1.27.1",version="0.0.4"} 1
+# HELP ghw_agent_http_request_duration_seconds HTTP request latency in seconds, by listener, endpoint and method.
+# TYPE ghw_agent_http_request_duration_seconds histogram
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="0.001"} 320
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="0.005"} 1271
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="0.01"} 1272
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="0.025"} 1272
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="0.05"} 1272
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="0.1"} 1272
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="0.25"} 1272
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="0.5"} 1272
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="1"} 1272
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="2.5"} 1272
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="5"} 1272
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="10"} 1272
+ghw_agent_http_request_duration_seconds_bucket{endpoint="GET /metrics",listener="ops",method="GET",le="+Inf"} 1272
+ghw_agent_http_request_duration_seconds_sum{endpoint="GET /metrics",listener="ops",method="GET"} 1.9063919640000013
+ghw_agent_http_request_duration_seconds_count{endpoint="GET /metrics",listener="ops",method="GET"} 1272
+# HELP ghw_agent_http_requests_total HTTP requests served, by listener, endpoint, method and status code.
+# TYPE ghw_agent_http_requests_total counter
+ghw_agent_http_requests_total{code="200",endpoint="GET /metrics",listener="ops",method="GET"} 1272
+# HELP ghw_agent_probe_duration_seconds Subsystem probe duration in seconds.
+# TYPE ghw_agent_probe_duration_seconds histogram
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="0.001"} 765
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="0.005"} 927
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="0.01"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="0.025"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="0.05"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="0.1"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="0.25"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="0.5"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="1"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="2.5"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="5"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="10"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="30"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="cpu",le="+Inf"} 928
+ghw_agent_probe_duration_seconds_sum{subsystem="cpu"} 0.8383166800000005
+ghw_agent_probe_duration_seconds_count{subsystem="cpu"} 928
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="0.001"} 0
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="0.005"} 0
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="0.01"} 0
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="0.025"} 0
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="0.05"} 38
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="0.1"} 172
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="0.25"} 172
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="0.5"} 172
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="1"} 172
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="2.5"} 172
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="5"} 172
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="10"} 172
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="30"} 172
+ghw_agent_probe_duration_seconds_bucket{subsystem="gpu",le="+Inf"} 172
+ghw_agent_probe_duration_seconds_sum{subsystem="gpu"} 8.493289320000002
+ghw_agent_probe_duration_seconds_count{subsystem="gpu"} 172
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="0.001"} 2625
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="0.005"} 3395
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="0.01"} 3396
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="0.025"} 3396
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="0.05"} 3396
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="0.1"} 3396
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="0.25"} 3396
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="0.5"} 3396
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="1"} 3396
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="2.5"} 3396
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="5"} 3396
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="10"} 3396
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="30"} 3396
+ghw_agent_probe_duration_seconds_bucket{subsystem="network",le="+Inf"} 3396
+ghw_agent_probe_duration_seconds_sum{subsystem="network"} 3.1078103470000005
+ghw_agent_probe_duration_seconds_count{subsystem="network"} 3396
+# HELP ghw_agent_ready Whether the agent has completed its first refresh cycle.
+# TYPE ghw_agent_ready gauge
+ghw_agent_ready 1
+# HELP go_gc_pauses_seconds Distribution of individual GC-related stop-the-world pause latencies.
+# TYPE go_gc_pauses_seconds histogram
+go_gc_pauses_seconds_bucket{le="0"} 0
+go_gc_pauses_seconds_bucket{le="6.4e-08"} 0
+go_gc_pauses_seconds_bucket{le="1.024e-06"} 4
+go_gc_pauses_seconds_bucket{le="1.28e-06"} 87
+go_gc_pauses_seconds_bucket{le="2.048e-06"} 1115
+go_gc_pauses_seconds_bucket{le="4.096e-06"} 3507
+go_gc_pauses_seconds_bucket{le="8.192e-06"} 4967
+go_gc_pauses_seconds_bucket{le="1.6384e-05"} 6463
+go_gc_pauses_seconds_bucket{le="3.2768e-05"} 8203
+go_gc_pauses_seconds_bucket{le="6.5536e-05"} 9234
+go_gc_pauses_seconds_bucket{le="0.000131072"} 9491
+go_gc_pauses_seconds_bucket{le="0.000262144"} 9612
+go_gc_pauses_seconds_bucket{le="0.000524288"} 9639
+go_gc_pauses_seconds_bucket{le="0.001048576"} 9644
+go_gc_pauses_seconds_bucket{le="0.004194304"} 9646
+go_gc_pauses_seconds_bucket{le="+Inf"} 9646
+go_gc_pauses_seconds_sum 0.18614464
+go_gc_pauses_seconds_count 9646
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.79019015875e+09

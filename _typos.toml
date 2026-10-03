@@ -1,0 +1,6 @@
+[files]
+extend-exclude = [
+  "graphify-out/",
+  # golden screens contain intentionally truncated words (e.g. "activ…")
+  "internal/ui/testdata/golden/",
+]

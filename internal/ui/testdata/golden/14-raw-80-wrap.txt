@@ -1,0 +1,36 @@
+ promtop   http://10.0.3.14:9100/metrics  ● live  every 1s · 150ms      12:36:59
+ 1 Table   2 History   3 Graph   4 Heatmap   5 Series   6 Raw
+────────────────────────────────────────────────────────────────────────────────
+╭─ last scrape · text exposition format · wrap ────────────────────────────────╮
+│    1  # HELP up 1 if the target is reachable, 0 otherwise.                   │
+│    2  # TYPE up gauge                                                        │
+│    3  up 1                                                                   │
+│    4  # HELP go_goroutines Number of goroutines that currently exist.        │
+│    5  # TYPE go_goroutines gauge                                             │
+│    6  go_goroutines 200   -11                                                │
+│    7  # HELP go_threads Number of OS threads created.                        │
+│    8  # TYPE go_threads gauge                                                │
+│    9  go_threads 18                                                          │
+│   10  # HELP go_memstats_heap_alloc_bytes Bytes of allocated heap objects.   │
+│   11  # TYPE go_memstats_heap_alloc_bytes gauge                              │
+│   12  go_memstats_heap_alloc_bytes 74752601   -10967200                      │
+│   13  # HELP process_resident_memory_bytes Resident memory size in bytes.    │
+│   14  # TYPE process_resident_memory_bytes gauge                             │
+│   15  process_resident_memory_bytes 212170290   -414713                      │
+│   16  # HELP process_cpu_seconds_total Total user and system CPU time spent  │
+│      ↪ in seconds.                                                           │
+│   17  # TYPE process_cpu_seconds_total counter                               │
+│   18  process_cpu_seconds_total 4193.4395   +0.4856                          │
+│   19  # HELP process_open_fds Number of open file descriptors.               │
+│   20  # TYPE process_open_fds gauge                                          │
+│   21  process_open_fds 64   -4                                               │
+│   22  # HELP http_requests_total Total HTTP requests processed, by method a  │
+│      ↪nd status code.                                                        │
+│   23  # TYPE http_requests_total counter                                     │
+│   24  http_requests_total{method="GET",code="200"} 14240974   +172           │
+│   25  http_requests_total{method="GET",code="404"} 621738   +5               │
+╰───────────────────────────────────────────────────────────────── ▼ 182 more ─╯
+
+────────────────────────────────────────────────────────────────────────────────
+rows 1–27 of 209 · 181 lines · changed samples highlighted
+↑ ↓ scroll   PgUp/Dn page   w no wrap   p pause   ← → view   q quit

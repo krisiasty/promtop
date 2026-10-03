@@ -1,0 +1,36 @@
+ promtop   http://10.0.3.14:9100/metrics  ● live  every 1s · 150ms · 99 samples · scrape #901                                             12:36:59
+ 1 Table   2 History   3 Graph   4 Heatmap   5 Series   6 Raw
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+╭─ families · 8/41 ────────────────────────╮
+│  up                             gau     1│   http_requests_total  counter  8 series
+│  go_goroutines                  gau     1│   # Total HTTP requests processed, by method and status code.
+│  go_threads                     gau     1│
+│  go_memstats_heap_alloc_bytes   gau     1│   ╭─ label cardinality ─────────────────────────────────────────────────────────────────────────────╮
+│  process_resident_memory_bytes  gau     1│   │ method        4   ████        GET POST PUT DELETE                                               │
+│  process_cpu_seconds_total      ctr     1│   │ code          5   █████       200 404 500 400 204                                               │
+│  process_open_fds               gau     1│   ╰─────────────────────────────────────────────────────────────────────────────────────────────────╯
+│▸ http_requests_total            ctr     8│
+│  http_request_duration_seconds  his    13│   ╭─ rate(http_requests_total[1m]) by method × code ────────────────────────╮
+│  http_inflight_requests         gau     1│   │ method\code      200       204       400       404       500          Σ │
+│  db_pool_connections            gau     2│   │ GET              182         ·         ·      5.87     0.633        189 │
+│  cache_hits_total               ctr     1│   │ POST            42.4         ·      2.62         ·     0.350       45.4 │
+│  cache_misses_total             ctr     1│   │ PUT             8.93         ·         ·         ·         ·       8.93 │
+│  queue_depth                    gau     2│   │ DELETE             ·      3.05         ·         ·         ·       3.05 │
+│  node_load1                     gau     1│   │ ─────────────────────────────────────────────────────────────────────── │
+│  node_load5                     gau     1│   │ Σ                234      3.05      2.62      5.87     0.983      246/s │
+│  node_load15                    gau     1│   ╰─────────────────────────────────────────────────────────────────────────╯
+│  go_gc_duration_seconds         sum     7│
+│  go_memstats_sys_bytes          gau     1│
+│  go_memstats_stack_inuse_bytes  gau     1│
+│  go_memstats_heap_objects       gau     1│
+│  go_memstats_mallocs_total      ctr     1│
+│  go_memstats_frees_total        ctr     1│
+│  go_gc_cycles_total             ctr     1│
+│  node_cpu_seconds_total         ctr    16│
+│  node_memory_MemAvailable_bytes gau     1│
+╰────────────────────────────── ▼ 15 more ─╯
+
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+41 families · 99 series                                                                                             window 5m · counters as rate/s
+↑ ↓ family   PgUp/Dn page   +/- window   p pause   ← → view   q quit

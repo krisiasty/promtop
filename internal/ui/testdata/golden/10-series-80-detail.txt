@@ -1,0 +1,36 @@
+ promtop   http://10.0.3.14:9100/metrics  ● live  every 1s · 150ms      12:36:59
+ 1 Table   2 History   3 Graph   4 Heatmap   5 Series   6 Raw
+────────────────────────────────────────────────────────────────────────────────
+esc ‹ families
+http_requests_total  counter  8 series
+# Total HTTP requests processed, by method and status code.
+╭─ label cardinality ──────────────────────────────────────────────────────────╮
+│ method        4   ████        GET POST PUT DELETE                            │
+│ code          5   █████       200 404 500 400 204                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ rate(http_requests_total[1m]) by method × code ────────────────────────╮
+│ method\code      200       204       400       404       500          Σ │
+│ GET              182         ·         ·      5.87     0.633        189 │
+│ POST            42.4         ·      2.62         ·     0.350       45.4 │
+│ PUT             8.93         ·         ·         ·         ·       8.93 │
+│ DELETE             ·      3.05         ·         ·         ·       3.05 │
+│ ─────────────────────────────────────────────────────────────────────── │
+│ Σ                234      3.05      2.62      5.87     0.983      246/s │
+╰─────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+41 families · 99 series                           window 5m · counters as rate/s
+esc back   ↑ ↓ prev/next   PgUp/Dn page   p pause   ← → view   q quit

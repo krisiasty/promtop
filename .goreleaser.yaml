@@ -1,0 +1,103 @@
+version: 2
+
+project_name: promtop
+
+builds:
+  - id: darwin
+    main: ./cmd/promtop
+    binary: promtop
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+  - id: others
+    main: ./cmd/promtop
+    binary: promtop
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: binaries
+    formats:
+      - binary
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - id: archives
+    ids:
+      - darwin
+    formats:
+      - tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+nfpms:
+  - id: packages
+    ids:
+      - others
+    package_name: promtop
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    homepage: "https://github.com/krisiasty/promtop"
+    maintainer: "Krzysztof Ciepłucha <krisiasty@gmail.com>"
+    description: "Terminal UI for exploring a single Prometheus metrics endpoint"
+    license: "Apache-2.0"
+    formats:
+      - deb
+      - rpm
+      - apk
+    bindir: /usr/bin
+    contents:
+      - src: LICENSE
+        dst: /usr/share/doc/promtop/LICENSE
+      - src: NOTICE
+        dst: /usr/share/doc/promtop/NOTICE
+
+homebrew_casks:
+  - name: promtop
+    ids:
+      - archives
+    homepage: "https://github.com/krisiasty/promtop"
+    description: "Terminal UI for exploring a single Prometheus metrics endpoint"
+    license: "Apache-2.0"
+    repository:
+      owner: krisiasty
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    binaries:
+      - promtop
+    hooks:
+      post:
+        install: |
+          system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", staged_path]
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  abbrev: 8
+  format: "- [{{ .SHA }}](https://github.com/krisiasty/promtop/commit/{{ .SHA }}) {{ .Message }}"
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  prerelease: "{{ .IsV0 }}"

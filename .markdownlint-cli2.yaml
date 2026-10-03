@@ -1,0 +1,3 @@
+# Rules live in .markdownlint.yaml; this file only scopes what is linted.
+ignores:
+  - "graphify-out/**"

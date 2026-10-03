@@ -1,0 +1,36 @@
+ promtop   http://10.0.3.14:9100/metrics  ● live  every 1s · 150ms      12:36:59
+ 1 Table   2 History   3 Graph   4 Heatmap   5 Series   6 Raw
+────────────────────────────────────────────────────────────────────────────────
+   NAME ▲                            TYP     CURRENT         Δ      AVG      P99
+   up                                gau        1.00         0     1.00     1.00
+▸● go_goroutines                     gau         200     −11.0      232      324
+   go_threads                        gau        18.0         0     17.8     21.0
+   go_memstats_heap_alloc_bytes      gau      71.3Mi   −10.5Mi   80.0Mi   98.7Mi
+ ● process_resident_memory_bytes     gau     202.3Mi  −405.0Ki  203.0Mi  206.4Mi
+ ● process_cpu_seconds_total         ctr       0.486    −0.035    0.428    0.520
+   process_open_fds                  gau        64.0     −4.00     65.2     71.0
+ ● http_requests_total{method="GET"… ctr         172     −18.0      188      237
+   http_requests_total{method="GET"… ctr        5.00     +1.00     5.97     8.00
+   http_requests_total{method="GET"… ctr           0         0     1.31     5.00
+   http_requests_total{method="POST… ctr        43.0     −8.00     42.0     53.0
+   http_requests_total{method="POST… ctr        3.00     +1.00     2.56     3.01
+   http_requests_total{method="POST… ctr           0     −1.00    0.317     1.00
+   http_requests_total{method="PUT"… ctr        11.0         0     8.89     12.0
+   http_requests_total{method="DELE… ctr        4.00     +1.00     3.10     4.00
+   http_request_duration_seconds     his      74.9ms   +0.74ms   85.7ms  759.5ms
+   http_inflight_requests            gau        19.0     −4.00     13.4     27.0
+   db_pool_connections{state="activ… gau        9.00     +3.00     17.9     26.0
+   db_pool_connections{state="idle"} gau        8.00         0     12.2     21.0
+ ● cache_hits_total                  ctr         961     −39.0      956     1208
+   cache_misses_total                ctr        78.0         0     70.3     92.0
+ ● queue_depth{queue="emails"}       gau        64.0     +9.00     48.2     93.0
+   queue_depth{queue="webhooks"}     gau        4.00     +3.00     4.23     9.00
+   node_load1                        gau        1.80   −0.0008     1.84     2.16
+   node_load5                        gau        1.66   −0.0082     1.60     1.73
+   node_load15                       gau        1.51    +0.015     1.50     1.54
+   go_gc_duration_seconds{quantile=… gau      0.20ms         0   0.20ms   0.30ms
+   go_gc_duration_seconds{quantile=… gau      0.40ms         0   0.38ms   0.50ms
+   go_gc_duration_seconds{quantile=… gau      0.50ms         0   0.54ms   0.70ms
+──────────────────────────────────────────────────────────────────── ▼ 58 more ─
+87/87 series · 6 pinned · sort name · rows 1–29 of 87
+↑ ↓ move   PgUp/Dn page   +/- window   p pause   ← → view   q quit

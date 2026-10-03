@@ -1,0 +1,36 @@
+ promtop   http://10.0.3.14:9100/metrics  ✕ down  last ok 7s ago · 7 failed · retry in 8s                                                 12:37:06
+ 1 Table   2 History   3 Graph   4 Heatmap   5 Series   6 Raw
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ✕ target down: dial tcp 10.0.3.14:9100: connect: connection refused · retry in 8s · stale since 12:36:59 · 7 consecutive failures      e details
+
+   NAME ▲                              TYP     CURRENT      PREV         Δ      MIN      MAX      AVG      P50      P95      P99  TREND
+   up               ╭─ scrape error ─────────────────────────────────────────────────────────────────────────────────────────╮00  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+▸● go_goroutines    │ target        http://10.0.3.14:9100/metrics                                                            │24  ▆█▇▆▄▅▇▇█▆▃▂▄▆▃▃
+   go_threads       │ state         DOWN                                                                                     │.0  ▂▃▄▆▇▆▃▄▅▆▅▅▇▅▄▄
+   go_memstats_heap_│ error         dial tcp 10.0.3.14:9100: connect: connection refused                                     │Mi  ▆▆▇▇▄▁▂▃▃▃▄▅▆▆▇▆
+ ● process_resident_│ last success  12:36:59 (7s ago)                                                                        │Mi  ▇▅▄▄▂▄▅▄▅▇▇▇▃▄▅▄
+ ● process_cpu_secon│ failures      7 consecutive                                                                            │20  ▅▄▅▄▄▅▅▆▆▆▂▄▆▇▆▇
+   process_open_fds │ next retry    in 8s                                                                                    │.0  ▂▅▇▆▄▄▅▆▄▄▄▅▅▆▅▅
+ ● http_requests_tot│ backoff       every 1s for 4 attempts, then 2s → 4s → 8s … max 30s                                     │37  ▆▇▅▅▂▃▅▇▇▄▅▂▆▇▅▄
+   http_requests_tot│ timeout       2s                                                                                       │00  ▃▅▅▂▅▅▂▄▅▅▇▅▆▄▃▂
+   http_requests_tot│                                                                                                        │00  ▅▆▅▅▃█▅▆▃▆▆█▅█▆▃
+   http_requests_tot│ ╭─ last 10 attempts ─────────────────────────────────────────────────────────────────────────────────╮ │.0  ▆▅▅▅▄▅▇▆▄▃▃▂▄▃▄▆
+   http_requests_tot│ │ 12:37:06  ✕  connection refused                                                                1ms │ │01  █▅▅█▁▅▅▆▅▆▆██▆▅▃
+   http_requests_tot│ │ 12:37:05  ✕  connection refused                                                                1ms │ │00  ▅▅▃▃▆▁▃▃▆▅▁▃▅▅▃▃
+   http_requests_tot│ │ 12:37:04  ✕  connection refused                                                                1ms │ │.0  ▅▄▅▅▅▇▅▄▂▂▃▃▃▅▃▆
+   http_requests_tot│ │ 12:37:03  ✕  connection refused                                                                1ms │ │00  ▇▅▄▄▃▅▅▅▄▅▅▅▄▅▇▆
+   http_request_dura│ │ 12:37:02  ✕  connection refused                                                                1ms │ │ms  ▅▄▅▆▃▅▄▄▅▄▅▄▅▅▆▅
+   http_inflight_req│ │ 12:37:01  ✕  connection refused                                                                1ms │ │.0  ▃▂▅▆▅▅▂▅▄▅▇▆▆▅▇▇
+   db_pool_connectio│ │ 12:37:00  ✕  connection refused                                                                1ms │ │.0  ▄▂▅▅▄▃▆█▇▄▂▃▄▄▄▂
+   db_pool_connectio│ │ 12:36:59  ✓  200 OK                                                                          150ms │ │.0  ▅▂▄▄▃▃▂▃▇▅▃▄▅▃▆▄
+ ● cache_hits_total │ │ 12:36:58  ✓  200 OK                                                                          150ms │ │08  ▅▇▆▄▄▄▅▆▃▄▂▃▆▅▅▅
+   cache_misses_tota│ │ 12:36:57  ✓  200 OK                                                                          150ms │ │.0  ▇▅▂▅▅▆▅▅▆▃▃▃▄▅▄▆
+ ● queue_depth{queue│ ╰────────────────────────────────────────────────────────────────────────────────────────────────────╯ │.0  ▂▃▃▃▃▃▂▃▄▅▄▃▄▄▄▇
+   queue_depth{queue│ ────────────────────────────────────────────────────────────────────────────────────────────────────── │00  ▆▄▄▃▁▄▆▆▆▅▇▄▄▃▄▃
+   node_load1       │ e/esc close                                                                                            │16  ▅▇▄▄▄▂▂▄▅▃▄▄▅▆▇▄
+   node_load5       ╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯73  ▆▄▄▆▆▇▆▅▇▅▂▅▄▄▄▅
+   node_load15                         gau        1.51      1.50    +0.015     1.45     1.55     1.50     1.49     1.53     1.54  ▅▄▅▅▄▃▂▅▇█▇▆▆▄▃▅
+   go_gc_duration_seconds{quantile="0… gau      0.20ms    0.20ms         0   0.20ms   0.30ms   0.20ms   0.20ms   0.20ms   0.30ms  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ▼ 60 more ─
+87/87 series · 6 pinned · sort name · rows 1–27 of 87                                                               window 5m · counters as rate/s
+e error   ↑ ↓ move   PgUp/Dn page   +/- window   space pin   a all/pinned   / filter   s sort   r rate   p pause   ← → view   q quit

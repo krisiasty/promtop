@@ -1,0 +1,36 @@
+ promtop   http://10.0.3.14:9100/metrics  ● live  every 1s · 150ms · 99 samples · scrape #901                                             12:36:59
+ 1 Table   2 History   3 Graph   4 Heatmap   5 Series   6 Raw
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   NAME ▲                              TYP     CURRENT      PREV         Δ      MIN      MAX      AVG      P50      P95      P99  TREND
+   up                                  gau        1.00      1.00         0     1.00     1.00     1.00     1.00     1.00     1.00  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+▸● go_goroutines                       gau         200       211     −11.0      159      342      232      226      311      324  ▆█▇▆▄▅▇▇█▆▃▂▄▆▃▃
+   go_threads                          gau        18.0      18.0         0     14.0     21.0     17.8     18.0     20.0     21.0  ▂▃▄▆▇▆▃▄▅▆▅▅▇▅▄▄
+   go_memstats_heap_alloc_bytes        gau      71.3Mi    81.7Mi   −10.5Mi   58.9Mi  101.0Mi   80.0Mi   79.7Mi   96.7Mi   98.7Mi  ▆▆▇▇▄▁▂▃▃▃▄▅▆▆▇▆
+ ● process_resident_memory_bytes       gau     202.3Mi   202.7Mi  −405.0Ki  198.1Mi  207.4Mi  203.0Mi  203.1Mi  206.0Mi  206.4Mi  ▇▅▄▄▂▄▅▄▅▇▇▇▃▄▅▄
+ ● process_cpu_seconds_total           ctr       0.486     0.520    −0.035    0.287    0.540    0.428    0.429    0.503    0.520  ▅▄▅▄▄▅▅▆▆▆▂▄▆▇▆▇
+   process_open_fds                    gau        64.0      68.0     −4.00     58.0     71.0     65.2     65.0     70.0     71.0  ▂▅▇▆▄▄▅▆▄▄▄▅▅▆▅▅
+ ● http_requests_total{method="GET",c… ctr         172       190     −18.0      119      253      188      188      222      237  ▆▇▅▅▂▃▅▇▇▄▅▂▆▇▅▄
+   http_requests_total{method="GET",c… ctr        5.00      4.00     +1.00     4.00     8.00     5.97     6.00     7.00     8.00  ▃▅▅▂▅▅▂▄▅▅▇▅▆▄▃▂
+   http_requests_total{method="GET",c… ctr           0         0         0        0     5.00     1.31     1.00     5.00     5.00  ▅▆▅▅▃█▅▆▃▆▆█▅█▆▃
+   http_requests_total{method="POST",… ctr        43.0      51.0     −8.00     30.0     55.0     42.0     42.0     50.0     53.0  ▆▅▅▅▄▅▇▆▄▃▃▂▄▃▄▆
+   http_requests_total{method="POST",… ctr        3.00      2.00     +1.00     1.00     4.00     2.56     3.00     3.00     3.01  █▅▅█▁▅▅▆▅▆▆██▆▅▃
+   http_requests_total{method="POST",… ctr           0      1.00     −1.00        0     1.00    0.317        0     1.00     1.00  ▅▅▃▃▆▁▃▃▆▅▁▃▅▅▃▃
+   http_requests_total{method="PUT",c… ctr        11.0      11.0         0     6.00     13.0     8.89     9.00     11.0     12.0  ▅▄▅▅▅▇▅▄▂▂▃▃▃▅▃▆
+   http_requests_total{method="DELETE… ctr        4.00      3.00     +1.00     2.00     4.00     3.10     3.00     4.00     4.00  ▇▅▄▄▃▅▅▅▄▅▅▅▄▅▇▆
+   http_request_duration_seconds       his      74.9ms    74.2ms   +0.74ms        0   >5.00s   85.7ms   46.6ms  220.9ms  759.5ms  ▅▄▅▆▃▅▄▄▅▄▅▄▅▅▆▅
+   http_inflight_requests              gau        19.0      23.0     −4.00        0     32.0     13.4     14.0     23.0     27.0  ▃▂▅▆▅▅▂▅▄▅▇▆▆▅▇▇
+   db_pool_connections{state="active"} gau        9.00      6.00     +3.00     6.00     27.0     17.9     18.0     25.0     26.0  ▄▂▅▅▄▃▆█▇▄▂▃▄▄▄▂
+   db_pool_connections{state="idle"}   gau        8.00      8.00         0     2.00     24.0     12.2     13.0     18.0     21.0  ▅▂▄▄▃▃▂▃▇▅▃▄▅▃▆▄
+ ● cache_hits_total                    ctr         961      1000     −39.0      650     1274      956      956     1136     1208  ▅▇▆▄▄▄▅▆▃▄▂▃▆▅▅▅
+   cache_misses_total                  ctr        78.0      78.0         0     40.0     92.0     70.3     70.0     84.0     92.0  ▇▅▂▅▅▆▅▅▆▃▃▃▄▅▄▆
+ ● queue_depth{queue="emails"}         gau        64.0      55.0     +9.00     18.0     95.0     48.2     41.0     89.0     93.0  ▂▃▃▃▃▃▂▃▄▅▄▃▄▄▄▇
+   queue_depth{queue="webhooks"}       gau        4.00      1.00     +3.00        0     10.0     4.23     4.00     8.00     9.00  ▆▄▄▃▁▄▆▆▆▅▇▄▄▃▄▃
+   node_load1                          gau        1.80      1.80   −0.0008     1.46     2.21     1.84     1.85     2.06     2.16  ▅▇▄▄▄▂▂▄▅▃▄▄▅▆▇▄
+   node_load5                          gau        1.66      1.66   −0.0082     1.47     1.78     1.60     1.60     1.69     1.73  ▆▄▄▆▆▇▆▅▇▅▂▅▄▄▄▅
+   node_load15                         gau        1.51      1.50    +0.015     1.45     1.55     1.50     1.49     1.53     1.54  ▅▄▅▅▄▃▂▅▇█▇▆▆▄▃▅
+   go_gc_duration_seconds{quantile="0… gau      0.20ms    0.20ms         0   0.20ms   0.30ms   0.20ms   0.20ms   0.20ms   0.30ms  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+   go_gc_duration_seconds{quantile="0… gau      0.40ms    0.40ms         0   0.30ms   0.50ms   0.38ms   0.40ms   0.40ms   0.50ms  ▂▂▅▅▅▅▅▄▅▅▄▅▅█▅▅
+   go_gc_duration_seconds{quantile="0… gau      0.50ms    0.50ms         0   0.40ms   0.70ms   0.54ms   0.50ms   0.60ms   0.70ms  ▇▆▅█▅▅▅▅▄▅▅▅▅▅▆▅
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ▼ 58 more ─
+87/87 series · 6 pinned · sort name · rows 1–29 of 87                                                               window 5m · counters as rate/s
+↑ ↓ move   PgUp/Dn page   +/- window   space pin   a all/pinned   / filter   s sort   r rate   enter details   p pause   ← → view   q quit
