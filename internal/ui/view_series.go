@@ -37,15 +37,36 @@ func familyPaneWidth(w int, fams []*store.FamilyInfo) int {
 	return clamp(needed, familyPaneW, min(w/2, w-102))
 }
 
+// families is the Series view list: the store's families filtered by
+// case-insensitive substring of the family name.
+func (m *Model) families() []*store.FamilyInfo {
+	all := m.st.Families()
+	if m.filter == "" {
+		return all
+	}
+	f := strings.ToLower(m.filter)
+	out := make([]*store.FamilyInfo, 0, len(all))
+	for _, fi := range all {
+		if strings.Contains(strings.ToLower(fi.Name), f) {
+			out = append(out, fi)
+		}
+	}
+	return out
+}
+
 func (m *Model) viewSeries(lay layout) body {
 	th := &m.th
-	fams := m.st.Families()
+	fams := m.families()
 	total := 0
 	for _, f := range fams {
 		total += f.Samples
 	}
 	b := body{status: format.Int(len(fams)) + " families · " + format.Int(total) + " series", statusStyle: th.fg}
 	if len(fams) == 0 {
+		if len(m.st.Families()) > 0 {
+			b.lines = []string{"", "   " + th.dim.Render("No families match. Esc clears the filter.")}
+			return b
+		}
 		b.lines = center([]string{th.dim.Render("no metric families")}, lay.w, lay.h)
 		return b
 	}

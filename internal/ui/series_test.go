@@ -270,3 +270,52 @@ requests_total{method="POST",code="500"} 4
 		}
 	}
 }
+
+func TestSeriesFilter(t *testing.T) {
+	m := newFixture(t, 120).model(146, 36)
+	m.view = ViewSeries
+	var want []string
+	for _, f := range m.st.Families() {
+		if strings.Contains(f.Name, "http") {
+			want = append(want, f.Name)
+		}
+	}
+	if len(want) < 2 || len(want) == len(m.st.Families()) {
+		t.Fatalf("fixture needs some, not all, families matching http: %d", len(want))
+	}
+	press(m, "G", "/", "H", "T", "T", "P", "enter")
+	if m.famIdx != 0 {
+		t.Errorf("filter change resets the family cursor, got %d", m.famIdx)
+	}
+	press(m, "G")
+	lines := plainLines(m.render())
+	if title := fmt.Sprintf("╭─ families · %d/%d ", len(want), len(want)); !strings.HasPrefix(lines[3], title) {
+		t.Errorf("families box top = %q, want prefix %q", lines[3], title)
+	}
+	box := strings.Join(lines[4:4+len(want)], "\n")
+	for _, name := range want {
+		if !strings.Contains(box, " "+name+" ") {
+			t.Errorf("family %q missing from filtered list:\n%s", name, box)
+		}
+	}
+	if !strings.Contains(lines[4+len(want)-1], "▸ "+want[len(want)-1]+" ") {
+		t.Errorf("G selects the last matching family: %q", lines[4+len(want)-1])
+	}
+	if !strings.HasPrefix(lines[34], fmt.Sprintf(`filter "HTTP" · %d match · esc to clear`, len(want))) {
+		t.Errorf("status = %q", lines[34])
+	}
+
+	press(m, "esc")
+	if got := m.st.Families()[m.famIdx].Name; got != want[len(want)-1] {
+		t.Errorf("clearing the filter keeps %q selected, got %q", want[len(want)-1], got)
+	}
+
+	press(m, "/", "z", "z", "z", "enter")
+	lines = plainLines(m.render())
+	if lineWith(lines, "No families match. Esc clears the filter.") == "" {
+		t.Errorf("empty filter result:\n%s", strings.Join(lines, "\n"))
+	}
+	if !strings.HasPrefix(lines[34], `filter "zzz" · 0 match · esc to clear`) {
+		t.Errorf("status = %q", lines[34])
+	}
+}

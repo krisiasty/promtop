@@ -60,7 +60,11 @@ func (m *Model) render() string {
 		out = append(out, m.bannerLine(w, bn), strings.Repeat(" ", w))
 	}
 	out = append(out, lines...)
-	out = append(out, m.separator(w, "▼", b.down), m.statusLine(w, b, len(rows)), m.hintLine(w))
+	matches := len(rows)
+	if m.view == ViewSeries {
+		matches = len(m.families())
+	}
+	out = append(out, m.separator(w, "▼", b.down), m.statusLine(w, b, matches), m.hintLine(w))
 	return strings.Join(out, "\n")
 }
 
