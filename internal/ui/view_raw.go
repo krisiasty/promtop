@@ -26,6 +26,9 @@ type rawRow struct {
 func (m *Model) viewRaw(lay layout) body {
 	th := &m.th
 	rows := m.rawRows(lay.w - 11)
+	if len(rows) == 0 && m.filter != "" && m.st.Last() != nil && len(m.st.Last().Lines) > 0 {
+		return body{lines: []string{"", "   " + th.dim.Render("No lines match. Esc clears the filter.")}, statusStyle: th.fg}
+	}
 	vis := lay.h - 3
 	off := clamp(m.rawOff, 0, max(0, len(rows)-vis))
 	title := "last scrape · text exposition format"
@@ -71,27 +74,48 @@ type rawCache struct {
 	seq        uint64
 	w          int
 	wrap, dark bool
+	filter     string
 	ok         bool
 	rows       []rawRow
+	matches    int // payload lines that pass the filter
 }
 
-// rawRows lays the payload out in visual rows of rw content cells, cached
-// until the next scrape or a width, wrap or theme change (rendering and
-// every scroll step need it, and a large payload is expensive to lay out).
+// rawRows lays the payload lines that pass the filter out in visual rows of
+// rw content cells, cached until the next scrape or a width, wrap, theme or
+// filter change (rendering and every scroll step need it, and a large
+// payload is expensive to lay out).
 func (m *Model) rawRows(rw int) []rawRow {
 	c := &m.raw
-	if !c.ok || c.seq != m.st.Seq() || c.w != rw || c.wrap != m.rawWrap || c.dark != m.th.dark {
-		*c = rawCache{seq: m.st.Seq(), w: rw, wrap: m.rawWrap, dark: m.th.dark, ok: true, rows: m.layoutRaw(rw)}
+	if !c.ok || c.seq != m.st.Seq() || c.w != rw || c.wrap != m.rawWrap || c.dark != m.th.dark || c.filter != m.filter {
+		*c = rawCache{seq: m.st.Seq(), w: rw, wrap: m.rawWrap, dark: m.th.dark, filter: m.filter, ok: true}
+		c.rows, c.matches = m.layoutRaw(rw)
 	}
 	return c.rows
 }
 
-func (m *Model) layoutRaw(rw int) []rawRow {
+// rawMatches is the number of payload lines that pass the filter.
+func (m *Model) rawMatches() int {
+	if m.w < minW || m.h < minH {
+		return 0
+	}
+	m.rawRows(m.w - 11)
+	return m.raw.matches
+}
+
+// layoutRaw keeps payload lines containing the filter (case-insensitive),
+// numbered by their position in the payload.
+func (m *Model) layoutRaw(rw int) ([]rawRow, int) {
 	if rw <= 0 {
-		return nil
+		return nil, 0
 	}
 	var out []rawRow
+	f := strings.ToLower(m.filter)
+	matches := 0
 	for i, segs := range m.rawSegments() {
+		if f != "" && !strings.Contains(strings.ToLower(m.st.Last().Lines[i]), f) {
+			continue
+		}
+		matches++
 		num := strconv.Itoa(i + 1)
 		if m.rawWrap {
 			for j, part := range wrapSegs(segs, rw) {
@@ -114,7 +138,7 @@ func (m *Model) layoutRaw(rw int) []rawRow {
 		}
 		out = append(out, rawRow{num: num, segs: segs})
 	}
-	return out
+	return out, matches
 }
 
 // rawSegments colours each payload line; changed sample values are

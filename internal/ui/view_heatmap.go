@@ -4,6 +4,7 @@ import (
 	"math"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"charm.land/lipgloss/v2"
@@ -19,13 +20,36 @@ const heatPanelMin = 40
 
 var heatGlyphs = []string{"░", "▒", "▓", "█"}
 
-func (m *Model) heatSourceCount() int { return len(m.st.HeatSources(m.heatBySeries)) }
+func (m *Model) heatSourceCount() int { return len(m.heatSources()) }
+
+// heatSources is the Heatmap list: the store's heat sources filtered by
+// case-insensitive substring of the family name and label set.
+func (m *Model) heatSources() []store.HeatSource {
+	all := m.st.HeatSources(m.heatBySeries)
+	if m.filter == "" {
+		return all
+	}
+	f := strings.ToLower(m.filter)
+	out := make([]store.HeatSource, 0, len(all))
+	for _, src := range all {
+		if strings.Contains(strings.ToLower(heatSourceID(src)), f) {
+			out = append(out, src)
+		}
+	}
+	return out
+}
+
+func heatSourceID(src store.HeatSource) string { return src.Family + expo.LabelString(src.Labels) }
 
 func (m *Model) viewHeatmap(lay layout) body {
 	th := &m.th
 	b := body{status: "last scrape " + format.Clock(m.st.LastTime()) + " · changed samples highlighted", statusStyle: th.fg}
-	srcs := m.st.HeatSources(m.heatBySeries)
+	srcs := m.heatSources()
 	if len(srcs) == 0 {
+		if m.filter != "" && len(m.st.HeatSources(m.heatBySeries)) > 0 {
+			b.lines = []string{"", "   " + th.dim.Render("No histograms match. Esc clears the filter.")}
+			return b
+		}
 		b.lines = center([]string{th.dim.Render("no histogram metrics in this target")}, lay.w, lay.h)
 		return b
 	}
@@ -200,12 +224,12 @@ func (m *Model) viewHeatmap(lay layout) body {
 }
 
 // heatData is src's activity over the window, cached until the next scrape
-// or a window, mode or source change, so frames between scrapes (keys, clock
+// or a window, mode, filter or source change, so frames between scrapes (keys, clock
 // ticks) do not re-sum every histogram of a family.
 func (m *Model) heatData(src store.HeatSource, idx int, from, to uint64) store.HeatData {
 	c := &m.heat
-	if !c.ok || c.seq != m.st.Seq() || c.window != m.window || c.bySeries != m.heatBySeries || c.idx != idx {
-		*c = heatCache{seq: m.st.Seq(), window: m.window, bySeries: m.heatBySeries, idx: idx, ok: true, d: src.Data(from, to)}
+	if !c.ok || c.seq != m.st.Seq() || c.window != m.window || c.bySeries != m.heatBySeries || c.filter != m.filter || c.idx != idx {
+		*c = heatCache{seq: m.st.Seq(), window: m.window, bySeries: m.heatBySeries, filter: m.filter, idx: idx, ok: true, d: src.Data(from, to)}
 	}
 	return c.d
 }
@@ -233,7 +257,7 @@ func (m *Model) heatLifetime(d store.HeatData) bool {
 // (a current distribution with no scope) and, if not, whether its panels show
 // lifetime totals (heatLifetime).
 func (m *Model) heatScope() (gauge, lifetime bool) {
-	srcs := m.st.HeatSources(m.heatBySeries)
+	srcs := m.heatSources()
 	if len(srcs) == 0 {
 		return false, m.heatSet && m.heatSinceStart
 	}

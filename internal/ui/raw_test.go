@@ -191,8 +191,9 @@ func TestRawRowsCached(t *testing.T) {
 		t.Error("a width change must recompute the raw rows")
 	}
 	for name, change := range map[string]func(){
-		"wrap":  func() { press(m, "w") },
-		"theme": func() { m.th = newTheme(false) },
+		"wrap":   func() { press(m, "w") },
+		"theme":  func() { m.th = newTheme(false) },
+		"filter": func() { m.filter = "go_" },
 	} {
 		b = m.rawRows(135)
 		change()
@@ -214,5 +215,43 @@ func TestRawLabelsAfterBlank(t *testing.T) {
 			texts = append(texts, s.text)
 		}
 		t.Errorf("labels after a blank keep the label style: %q", texts)
+	}
+}
+
+func TestRawFilter(t *testing.T) {
+	f := newFixture(t, 0)
+	f.apply(`# HELP up 1 if the target is reachable.
+# TYPE up gauge
+up 1
+# HELP queue_depth Items waiting.
+# TYPE queue_depth gauge
+queue_depth{queue="Mail"} 3
+queue_depth{queue="jobs"} 5
+`)
+	m := f.model(146, 36)
+	m.view = ViewRaw
+	press(m, "G", "/", "M", "A", "I", "L", "enter")
+	if m.rawOff != 0 {
+		t.Errorf("filter change resets the scroll, got %d", m.rawOff)
+	}
+	lines := plainLines(m.render())
+	if !strings.HasPrefix(lines[4], `│    6  queue_depth{queue="Mail"} 3`) || lines[5] != "╰"+strings.Repeat("─", 144)+"╯" {
+		t.Errorf("filtered rows:\n%s", strings.Join(lines[3:7], "\n"))
+	}
+	if !strings.HasPrefix(lines[34], `filter "MAIL" · 1 match · esc to clear`) {
+		t.Errorf("status = %q", lines[34])
+	}
+	press(m, "/", "backspace", "backspace", "backspace", "backspace", "q", "u", "e", "u", "e", "enter")
+	if lines = plainLines(m.render()); !strings.HasPrefix(lines[4], "│    4  # HELP queue_depth") ||
+		!strings.HasPrefix(lines[7], `│    7  queue_depth{queue="jobs"} 5`) || !strings.HasPrefix(lines[34], `filter "queue" · 4 match`) {
+		t.Errorf("filter %q rows:\n%s\n%s", m.filter, strings.Join(lines[3:9], "\n"), lines[34])
+	}
+	press(m, "/", "z", "enter")
+	if lines = plainLines(m.render()); lineWith(lines, "No lines match. Esc clears the filter.") == "" {
+		t.Errorf("empty filter result:\n%s", strings.Join(lines, "\n"))
+	}
+	press(m, "esc")
+	if lines = plainLines(m.render()); !strings.HasPrefix(lines[4], "│    1  # HELP up") || !strings.HasPrefix(lines[10], `│    7  queue_depth{queue="jobs"} 5`) {
+		t.Errorf("cleared filter rows:\n%s", strings.Join(lines[3:12], "\n"))
 	}
 }

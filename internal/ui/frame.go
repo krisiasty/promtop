@@ -61,8 +61,13 @@ func (m *Model) render() string {
 	}
 	out = append(out, lines...)
 	matches := len(rows)
-	if m.view == ViewSeries {
+	switch m.view {
+	case ViewSeries:
 		matches = len(m.families())
+	case ViewHeatmap:
+		matches = m.heatSourceCount()
+	case ViewRaw:
+		matches = m.rawMatches()
 	}
 	out = append(out, m.separator(w, "▼", b.down), m.statusLine(w, b, matches), m.hintLine(w))
 	return strings.Join(out, "\n")
