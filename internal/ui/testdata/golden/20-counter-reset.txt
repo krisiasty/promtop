@@ -14,7 +14,7 @@
    go_gc_duration_seconds{quantile="0… gau      0.40ms    0.40ms         0   0.30ms   0.50ms   0.38ms   0.40ms   0.40ms   0.50ms  ▁▃▅▅▅▅▅▄▅▅▄▅▆▇▅▅
    go_gc_duration_seconds{quantile="0… gau      0.50ms    0.50ms         0   0.40ms   0.70ms   0.54ms   0.50ms   0.60ms   0.70ms  ▇▅▆▇▅▅▅▅▄▅▅▅▅▆▅▅
    go_gc_duration_seconds{quantile="0… gau      0.70ms    0.80ms   −0.10ms   0.50ms   1.10ms   0.80ms   0.80ms   0.90ms   1.00ms  ▃▃▃▅▄▂▃▄▅▅▅▃▇█▆▅
-   go_gc_duration_seconds{quantile="1… gau      4.00ms    4.00ms         0   2.10ms   4.60ms   3.49ms   3.50ms   4.10ms   4.40ms  ▆▅▂▃▃▃▅▅▅▅▅▄▄▇▅▇
+   go_gc_duration_seconds{quantile="1… gau      4.00ms    4.00ms         0   2.10ms   4.60ms   3.49ms   3.50ms   4.11ms   4.40ms  ▆▅▂▃▃▃▅▅▅▅▅▄▄▇▅▇
    go_gc_duration_seconds_count        ctr           0         0   ↺ reset        0     1.00    0.020        0        0     1.00  ▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁
    go_gc_duration_seconds_sum          ctr           0         0   ↺ reset        0   0.0001        0        0   0.0001   0.0001  ▁▃▁▃▁▃▁▃▁▃▁▃▁▃▃▁
 ▸● go_goroutines                       gau        61.0       200      −139     61.0      342      231      226      311      324  ███▇▇▇███▇▆▆▇▇▆▅

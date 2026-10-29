@@ -171,3 +171,21 @@ func TestMismatchedLengthsDoNotPanic(t *testing.T) {
 		t.Errorf("Rate1m with short ts = %v, want 1", got)
 	}
 }
+
+// Vars, not constants, so the compiler cannot fold Percentile's arithmetic.
+var p95, rankLo, rankHi = 0.95, 75.0, 76.0
+
+// Percentile must round 299*0.95 before taking its fraction: arm64 fuses
+// the multiply into the subtraction, which put this p95 at
+// 75.04999999999998 (rendered 75.0) instead of amd64's 75.05000000000001
+// (75.1).
+func TestPercentileSameOnEveryArch(t *testing.T) {
+	sorted := make([]float64, 300)
+	for i := range sorted {
+		sorted[i] = float64(i)
+	}
+	sorted[284], sorted[285] = rankLo, rankHi
+	if got := Percentile(sorted, p95); got != 75.05000000000001 {
+		t.Errorf("p95 = %.17g, want 75.05000000000001", got)
+	}
+}

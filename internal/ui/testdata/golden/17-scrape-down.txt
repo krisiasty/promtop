@@ -14,7 +14,7 @@
    go_gc_duration_seconds{quantile="0… gau      0.40ms    0.40ms         0   0.30ms   0.50ms   0.38ms   0.40ms   0.40ms   0.50ms  ▂▂▅▅▅▅▅▄▅▅▄▅▅█▅▅
    go_gc_duration_seconds{quantile="0… gau      0.50ms    0.50ms         0   0.40ms   0.70ms   0.54ms   0.50ms   0.60ms   0.70ms  ▇▆▅█▅▅▅▅▄▅▅▅▅▅▆▅
    go_gc_duration_seconds{quantile="0… gau      0.80ms    0.80ms         0   0.50ms   1.10ms   0.80ms   0.80ms   0.90ms   1.00ms  ▃▄▂▅▅▂▂▄▅▅▅▃▆█▆▆
-   go_gc_duration_seconds{quantile="1… gau      4.00ms    3.90ms   +0.10ms   2.10ms   4.60ms   3.49ms   3.50ms   4.10ms   4.40ms  ▇▆▃▂▃▃▅▅▅▅▄▄▄▇▅▆
+   go_gc_duration_seconds{quantile="1… gau      4.00ms    3.90ms   +0.10ms   2.10ms   4.60ms   3.49ms   3.50ms   4.11ms   4.40ms  ▇▆▃▂▃▃▅▅▅▅▄▄▄▇▅▆
    go_gc_duration_seconds_count        ctr           0         0         0        0     1.00    0.020        0        0     1.00  ▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁
    go_gc_duration_seconds_sum          ctr           0         0         0        0   0.0001        0        0   0.0001   0.0001  ▃▃▁▃▁▃▁▃▁▃▁▃▁▃▁▃
 ▸● go_goroutines                       gau         200       211     −11.0      159      342      232      226      311      324  ▆█▇▆▄▅▇▇█▆▃▂▄▆▃▃
@@ -27,8 +27,8 @@
    go_threads                          gau        18.0      18.0         0     14.0     21.0     17.8     18.0     20.0     21.0  ▂▃▄▆▇▆▃▄▅▆▅▅▇▅▄▄
    grpc_server_handled_total{grpc_met… ctr        1.00         0     +1.00        0     1.00    0.377        0     1.00     1.00  ▃▅▃▆▁▃▆▃▃▅▆▅▅▃▁▃
    grpc_server_handled_total{grpc_met… ctr        5.00      5.00         0     3.00     7.00     5.51     6.00     7.00     7.00  ▆▅▅▂▃▃▅▂▃▇▅▅▅▅▆▃
-   grpc_server_handled_total{grpc_met… ctr        70.0      69.0     +1.00     42.0     92.0     63.4     63.0     75.0     82.0  ▃▃▃▄▄▄▄▅▆▅▆▇▆▅▅▅
-   grpc_server_handled_total{grpc_met… ctr        19.0      16.0     +3.00     13.0     31.0     21.7     22.0     26.0     29.0  ▇▆▆▆▇▆▆▆▇▆▅▅▅▅▃▂
+   grpc_server_handled_total{grpc_met… ctr        70.0      69.0     +1.00     42.0     92.0     63.4     63.0     75.1     82.0  ▃▃▃▄▄▄▄▅▆▅▆▇▆▅▅▅
+   grpc_server_handled_total{grpc_met… ctr        19.0      16.0     +3.00     13.0     31.0     21.7     22.0     26.1     29.0  ▇▆▆▆▇▆▆▆▇▆▅▅▅▅▃▂
    grpc_server_handled_total{grpc_met… ctr           0         0         0        0        0        0        0        0        0  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
    grpc_server_handled_total{grpc_met… ctr           0         0         0        0     1.00    0.043        0        0     1.00  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ▼ 54 more ─
