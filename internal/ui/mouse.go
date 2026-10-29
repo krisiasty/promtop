@@ -44,7 +44,7 @@ func (m *Model) handleClick(msg tea.MouseClickMsg) (tea.Model, tea.Cmd) {
 		}
 	case ViewSeries:
 		wide := m.w >= 146
-		fams := m.st.Families()
+		fams := m.families()
 		if !wide && m.famOpen || wide && mo.X >= familyPaneWidth(m.w, fams) {
 			return m, nil
 		}

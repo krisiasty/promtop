@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"slices"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
@@ -135,13 +136,21 @@ func (m *Model) key(k tea.KeyPressMsg) tea.Cmd {
 		if m.view == ViewSeries && m.famOpen {
 			m.famOpen = false
 		} else {
-			m.filter = ""
+			m.keepFamily(func() { m.filter = "" })
 		}
 	}
 	return nil
 }
 
 func (m *Model) filterKey(k tea.KeyPressMsg, s string) {
+	if s != "esc" && s != "enter" && s != "backspace" && k.Text == "" {
+		return
+	}
+	m.keepFamily(func() { m.editFilter(k, s) })
+	m.setCursor(m.rows(), 0)
+}
+
+func (m *Model) editFilter(k tea.KeyPressMsg, s string) {
 	switch s {
 	case "esc":
 		m.filtering, m.filter = false, ""
@@ -152,12 +161,19 @@ func (m *Model) filterKey(k tea.KeyPressMsg, s string) {
 			m.filter = string(r[:len(r)-1])
 		}
 	default:
-		if k.Text == "" {
-			return
-		}
 		m.filter += k.Text
 	}
-	m.setCursor(m.rows(), 0)
+}
+
+// keepFamily applies a filter change, keeping the selected Series family
+// selected if it still matches, else selecting the first.
+func (m *Model) keepFamily(change func()) {
+	name := ""
+	if fams := m.families(); len(fams) > 0 {
+		name = fams[clamp(m.famIdx, 0, len(fams)-1)].Name
+	}
+	change()
+	m.famIdx = max(0, slices.IndexFunc(m.families(), func(f *store.FamilyInfo) bool { return f.Name == name }))
 }
 
 func viewKey(s string, cur View) (View, bool) {
@@ -212,7 +228,7 @@ func (m *Model) move(n int) {
 	case ViewHistory:
 		m.histOff = clamp(m.histOff+n, 0, m.historyMaxOff())
 	case ViewSeries:
-		m.famIdx = clamp(m.famIdx+n, 0, len(m.st.Families())-1)
+		m.famIdx = clamp(m.famIdx+n, 0, len(m.families())-1)
 	case ViewHeatmap:
 		m.heatIdx = clamp(m.heatIdx+n, 0, m.heatSourceCount()-1)
 	case ViewRaw:
