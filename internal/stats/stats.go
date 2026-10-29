@@ -106,9 +106,11 @@ func Percentile(sorted []float64, p float64) float64 {
 	if len(sorted) == 0 {
 		return math.NaN()
 	}
-	i := float64(len(sorted)-1) * p
+	// The float64 conversions round each product, so arm64 cannot fuse it
+	// into the next subtraction or addition and disagree with amd64.
+	i := float64(float64(len(sorted)-1) * p)
 	lo, hi := int(math.Floor(i)), int(math.Ceil(i))
-	return sorted[lo] + (sorted[hi]-sorted[lo])*(i-float64(lo))
+	return sorted[lo] + float64((sorted[hi]-sorted[lo])*(i-float64(lo)))
 }
 
 // Rate1m is the per-second increase over the samples in the last 60 seconds

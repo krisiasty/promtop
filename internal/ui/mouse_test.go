@@ -19,6 +19,7 @@ func wheel(m *Model, down bool) {
 func TestMouseTabsAndTable(t *testing.T) {
 	f := newFixture(t, 30)
 	m := f.model(146, 36)
+	m.cursor = 1    // the table is not scrolled
 	click(m, 24, 1) // "3 Graph" spans cells 22–30
 	if m.view != ViewGraph {
 		t.Fatalf("tab click → %v", m.view)

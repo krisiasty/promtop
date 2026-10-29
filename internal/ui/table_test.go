@@ -17,32 +17,37 @@ func TestTableColumns(t *testing.T) {
 	}
 	for w, want := range cases {
 		m := f.model(w, 36)
+		m.cursor = 1
 		out := m.render()
 		assertFrame(t, out, w, 36)
 		lines := plainLines(out)
 		if lines[3] != want {
 			t.Errorf("@%d header\n got %q\nwant %q", w, lines[3], want)
 		}
-		if !strings.HasPrefix(lines[4], "   up ") || !strings.HasPrefix(lines[5], "▸● go_goroutines ") || !strings.HasPrefix(lines[6], "   go_threads ") {
+		if !strings.HasPrefix(lines[4], "   build_info{") || !strings.HasPrefix(lines[5], "▸  cache_evictions_total ") || !strings.HasPrefix(lines[6], " ● cache_hits_total ") {
 			t.Errorf("@%d first rows:\n%s", w, strings.Join(lines[4:7], "\n"))
 		}
 		if !strings.Contains(lines[4], " gau ") {
 			t.Errorf("@%d type column: %q", w, lines[4])
 		}
 	}
-	lines := plainLines(f.model(146, 36).render())
-	if !strings.HasPrefix(lines[11], ` ● http_requests_total{method="GET",c… ctr `) {
-		t.Errorf("label truncation @146: %q", lines[11])
+	m := f.model(146, 36)
+	m.cursor = rowIndex(m, `http_requests_total{method="GET",code="200"}`)
+	lines := plainLines(m.render())
+	if !strings.HasPrefix(lineWith(lines, "http_requests_total"), `▸● http_requests_total{method="GET",c… ctr `) {
+		t.Errorf("label truncation @146: %q", lineWith(lines, "http_requests_total"))
 	}
-	lines = plainLines(f.model(80, 36).render())
-	if !strings.HasPrefix(lines[11], ` ● http_requests_total{method="GET"… ctr `) {
-		t.Errorf("label truncation @80: %q", lines[11])
+	m.w = 80
+	lines = plainLines(m.render())
+	if !strings.HasPrefix(lineWith(lines, "http_requests_total"), `▸● http_requests_total{method="GET"… ctr `) {
+		t.Errorf("label truncation @80: %q", lineWith(lines, "http_requests_total"))
 	}
 }
 
 func TestTableScrollAndStatus(t *testing.T) {
 	f := newFixture(t, 30)
 	m := f.model(146, 36)
+	m.cursor = 1
 	n := len(m.rows())
 	lines := plainLines(m.render())
 	if want := fmt.Sprintf("%d/%d series · 6 pinned · sort name · rows 1–29 of %d", n, n, n); !strings.HasPrefix(lines[34], want) {
@@ -99,13 +104,13 @@ func TestTableStaleAndReset(t *testing.T) {
 	}
 	f.gen.Restart()
 	f.step()
+	m.cursor = rowIndex(m, "process_cpu_seconds_total")
 	lines := plainLines(m.render())
-	cpu := lines[11] // process_cpu_seconds_total (banner shifts body by 2)
-	if !strings.Contains(cpu, "process_cpu_seconds_total") || !strings.Contains(cpu, "↺ reset") {
+	if cpu := lineWith(lines, "process_cpu_seconds_total"); !strings.Contains(cpu, "↺ reset") {
 		t.Errorf("reset marker: %q", cpu)
 	}
-	if !strings.HasPrefix(lines[6], "   up ") || strings.Contains(lines[6], "↺ reset") {
-		t.Error("gauges never show ↺ reset")
+	if fds := lineWith(lines, "process_open_fds"); fds == "" || strings.Contains(fds, "↺ reset") {
+		t.Errorf("gauges never show ↺ reset: %q", fds)
 	}
 }
 

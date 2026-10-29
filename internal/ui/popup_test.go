@@ -143,6 +143,7 @@ func TestHiddenPopupsReleaseInput(t *testing.T) {
 	f := newFixture(t, 30)
 	f.fail(3)
 	m := f.model(146, 36)
+	m.cursor = 1 // the table is not scrolled
 	press(m, "e")
 	if !m.errOpen {
 		t.Fatal("e opens the error popup while failing")

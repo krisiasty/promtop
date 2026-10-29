@@ -1,36 +1,36 @@
  promtop   http://10.0.3.14:9100/metrics  ● live  every 1s · 150ms · 20,099 samples · 1.8 MB                                              12:37:02
  1 Table   2 History   3 Graph   4 Heatmap   5 Series   6 Raw
-──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ▲ 6 more ─
  ⚠ high cardinality: 20,087 series, 20,000 from tenant_api_requests_total · stats for visible rows only · value sort disabled
 
    NAME ▲                              TYP     CURRENT      PREV         Δ      MIN      MAX      AVG      P50      P95      P99  TREND
-   up                                  gau        1.00      1.00         0     1.00     1.00     1.00     1.00     1.00     1.00  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-▸● go_goroutines                       gau         204       205     −1.00      159      342      232      226      311      324  ▇█▆▅▄▇▇█▇▃▂▃▅▄▃▃
-   go_threads                          gau        17.0      17.0         0     14.0     21.0     17.6     18.0     20.0     20.8  ▁▃▅▇▆▃▂▅▅▄▄▆▆▃▃▃
-   go_memstats_heap_alloc_bytes        gau      62.5Mi    64.3Mi    −1.8Mi   58.9Mi  101.0Mi   80.7Mi   80.6Mi   97.2Mi  100.8Mi  ▆▇▇▅▁▂▃▃▃▄▅▅▆▇▇▂
- ● process_resident_memory_bytes       gau     200.4Mi   201.9Mi    −1.5Mi  198.1Mi  207.4Mi  203.0Mi  203.1Mi  206.0Mi  206.4Mi  ▅▄▄▂▄▄▄▅▆▇▇▄▄▅▄▃
- ● process_cpu_seconds_total           ctr       0.447     0.422    +0.025    0.287    0.540    0.429    0.430    0.503    0.520  ▄▅▅▄▅▄▆▆▆▃▃▆▇▆▇▆
-   process_open_fds                    gau        65.0      63.0     +2.00     60.0     71.0     65.7     65.5     70.0     70.8  ▃▆▆▃▃▅▅▄▃▃▄▄▆▅▅▂
- ● http_requests_total{method="GET",c… ctr         194       174     +20.0      119      253      188      188      222      237  ▇▅▆▃▂▅▇▇▄▅▂▄▇▆▅▅
-   http_requests_total{method="GET",c… ctr        5.00      5.00         0     4.00     8.00     6.01     6.00     7.00     7.00  ▅▅▃▅▄▃▄▅▅▆▅▅▅▃▃▃
-   http_requests_total{method="GET",c… ctr        1.00      1.00         0        0     5.00     1.51     1.00     5.00     5.00  █▅▅▃▆▅▆▃▆▆█▆▆▆▅▅
-   http_requests_total{method="POST",… ctr        33.0      30.0     +3.00     30.0     55.0     41.4     41.0     49.1     52.0  ▆▅▅▄▄▇▆▅▃▃▂▄▄▄▆▃
-   http_requests_total{method="POST",… ctr        3.00      2.00     +1.00     2.00     3.00     2.57     3.00     3.00     3.00  ▆▃█▃▃▅▆▅█▅██▆▆▁▅
-   http_requests_total{method="POST",… ctr           0      1.00     −1.00        0     1.00    0.345        0     1.00     1.00  ▅▃▃▅▃▃▁▆▅▃▃▅▅▃▃▅
-   http_requests_total{method="PUT",c… ctr        11.0      12.0     −1.00     6.00     13.0     8.97     9.00     11.0     12.0  ▄▄▅▅▇▅▄▃▂▃▃▃▄▃▅▇
-   http_requests_total{method="DELETE… ctr        2.00      3.00     −1.00     2.00     4.00     3.09     3.00     4.00     4.00  ▆▄▅▂▅▅▅▅▅▅▅▅▄▇▆▅
-   http_request_duration_seconds       his      66.9ms    65.1ms   +1.85ms        0   >5.00s   86.4ms   46.3ms  209.6ms  445.6ms  ▄▅▅▄▅▄▅▅▅▄▄▅▄▆▆▅
-   http_inflight_requests              gau        10.0      13.0     −3.00        0     25.0     15.2     16.0     23.0     24.8  ▂▄▆▅▅▂▅▄▄▇▆▆▅▇▇▄
-   db_pool_connections{state="active"} gau        13.0      11.0     +2.00     6.00     24.0     16.2     16.0     23.0     24.0  ▂▄▅▄▃▅█▇▆▂▃▄▄▄▃▃
    db_pool_connections{state="idle"}   gau        11.0      7.00     +4.00     4.00     20.0     10.8     11.0     15.0     18.0  ▂▄▄▃▃▂▃▆▆▃▄▅▃▅▄▄
- ● cache_hits_total                    ctr         719       910      −191      650     1274      954      955     1136     1208  ▆▆▄▅▄▄▇▅▃▄▃▅▆▅▆▄
-   cache_misses_total                  ctr        77.0      77.0         0     52.0     90.0     70.5     71.0     82.1     87.0  ▅▃▅▅▇▄▆▆▃▄▃▄▅▄▅▆
- ● queue_depth{queue="emails"}         gau        72.0      71.0     +1.00     18.0     95.0     48.2     41.0     89.0     93.0  ▂▃▃▃▃▂▂▃▄▄▃▃▃▃▅█
-   queue_depth{queue="webhooks"}       gau           0      1.00     −1.00        0     9.00     4.08     4.00     8.00     9.00  ▄▄▃▁▃▆▆▆▅▇▄▅▂▄▂▂
-   node_load1                          gau        1.70      1.82    −0.123     1.47     2.11     1.85     1.85     2.04     2.10  ▆▅▄▄▂▂▃▆▃▄▃▅▆▇▅▄
-   node_load5                          gau        1.61      1.63    −0.020     1.48     1.73     1.62     1.62     1.70     1.71  ▅▄▅▆▇▆▆▇▆▂▄▄▄▃▅▅
-   node_load15                         gau        1.48      1.51    −0.027     1.45     1.54     1.50     1.50     1.53     1.54  ▄▅▅▅▄▂▄▆█▇▇▆▅▃▅▅
+   db_queries_total{op="delete"}       ctr        2.00      2.00         0     1.00     3.00     2.02     2.00     3.00     3.00  ▅▅▅▅▆▅▅▅▄▅▅▅▅▅▄▄
+   db_queries_total{op="insert"}       ctr        29.0      27.0     +2.00     15.0     32.0     24.5     25.0     29.0     31.6  ▃▃▅▅▅▄▅▄▆▆▅▇▇▇▅▆
+   db_queries_total{op="select"}       ctr         308       327     −19.0      223      420      308      306      369      397  ▃▅▅▃▄▄▄▂▂▅▆▅▂▃▃▄
+   db_queries_total{op="update"}       ctr        20.0      21.0     −1.00     12.0     22.0     17.4     17.0     21.0     21.0  ▆▄▂▃▆▇▆▆▆▅▆▆▄▃▄▆
+   go_gc_cycles_total                  ctr           0         0         0        0     1.00    0.025        0        0     1.00  ▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
    go_gc_duration_seconds{quantile="0… gau      0.20ms    0.20ms         0   0.20ms   0.20ms   0.20ms   0.20ms   0.20ms   0.20ms  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ▼ 20,060 more ─
-20,087/20,087 series · 6 pinned · sort name (value sort off above 10k) · rows 1–27 of 20,087                        window 5m · counters as rate/s
+   go_gc_duration_seconds{quantile="0… gau      0.40ms    0.40ms         0   0.30ms   0.50ms   0.39ms   0.40ms   0.50ms   0.50ms  ▁▅▅▅▅▅▅▄▅▄▅▅█▅▅▅
+   go_gc_duration_seconds{quantile="0… gau      0.50ms    0.40ms +100.00µs   0.40ms   0.70ms   0.52ms   0.50ms   0.60ms   0.60ms  ▇▅█▅▅▅▅▄▅▅▅▅▅▅▅▄
+   go_gc_duration_seconds{quantile="0… gau      0.70ms    0.80ms   −0.10ms   0.60ms   1.00ms   0.80ms   0.80ms   0.90ms   1.00ms  ▅▁▅▅▃▁▄▅▅▅▅▄█▇▆▃
+   go_gc_duration_seconds{quantile="1… gau      3.70ms    4.40ms   −0.70ms   2.70ms   4.60ms   3.66ms   3.60ms   4.30ms   4.40ms  ▅▄▂▃▃▄▄▄▄▄▄▃▅▆▅▇
+   go_gc_duration_seconds_count        ctr           0         0         0        0     1.00    0.017        0        0    0.820  ▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁
+   go_gc_duration_seconds_sum          ctr           0         0         0        0   0.0001        0        0   0.0001   0.0001  ▁▃▁▃▃▁▃▁▃▁▃▁▃▁▃▁
+▸● go_goroutines                       gau         204       205     −1.00      159      342      232      226      311      324  ▇█▆▅▄▇▇█▇▃▂▃▅▄▃▃
+   go_memstats_frees_total             ctr       15.9k     16.1k      −213    12.8k    22.5k    18.5k    18.3k    21.2k    22.3k  ▆▃▃▃▄▆▂▅▄▆▆▇▅▃▆▂
+   go_memstats_heap_alloc_bytes        gau      62.5Mi    64.3Mi    −1.8Mi   58.9Mi  101.0Mi   80.7Mi   80.6Mi   97.2Mi  100.8Mi  ▆▇▇▅▁▂▃▃▃▄▅▅▆▇▇▂
+   go_memstats_heap_objects            gau      333.4k    333.4k     +23.0   311.0k   521.2k   416.5k   418.1k   500.5k   515.1k  ▆▇▇▆▁▂▂▂▃▄▅▅▆▇▆▁
+   go_memstats_mallocs_total           ctr       15.6k     16.7k     −1078    15.2k    23.9k    18.8k    18.6k    22.8k    23.5k  ▃▄▂▃▄▄▅▅▄▃▂▃▂▆▅▂
+   go_memstats_stack_inuse_bytes       gau       3.2Mi     3.1Mi   +81.8Ki    2.8Mi    3.3Mi    3.0Mi    3.0Mi    3.2Mi    3.3Mi  ▂▂▅▅▄▄▅▇▇▆▅▅▆▆▆▆
+   go_memstats_sys_bytes               gau     135.0Mi   135.0Mi   +32.2Ki  133.8Mi  136.9Mi  135.2Mi  135.2Mi  136.1Mi  136.6Mi  ▄▅▅▄▃▂▃▃▅▆▅▄▆▆▅▅
+   go_threads                          gau        17.0      17.0         0     14.0     21.0     17.6     18.0     20.0     20.8  ▁▃▅▇▆▃▂▅▅▄▄▆▆▃▃▃
+   grpc_server_handled_total{grpc_met… ctr           0         0         0        0     1.00    0.303        0     1.00     1.00  ▅▃▅▃▃▅▅▃▅▅▅▆▃▁▁▃
+   grpc_server_handled_total{grpc_met… ctr        5.00      6.00     −1.00     3.00     7.00     5.45     6.00     7.00     7.00  ▅▅▃▂▃▅▂▂▇▅▅▅▆▅▄▅
+   grpc_server_handled_total{grpc_met… ctr        58.0      59.0     −1.00     42.0     83.0     64.8     65.0     76.1     79.8  ▂▃▃▄▃▅▅▆▆▅▇▆▅▆▄▄
+   grpc_server_handled_total{grpc_met… ctr        20.0      19.0     +1.00     13.0     27.0     21.6     22.0     26.0     26.0  ▆▆▆▇▇▆▆▇▆▆▅▅▅▄▂▃
+   grpc_server_handled_total{grpc_met… ctr           0         0         0        0        0        0        0        0        0  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+   grpc_server_handled_total{grpc_met… ctr           0         0         0        0     1.00    0.042        0        0     1.00  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ▼ 20,054 more ─
+20,087/20,087 series · 6 pinned · sort name (value sort off above 10k) · rows 7–33 of 20,087                        window 5m · counters as rate/s
 ↑ ↓ move   PgUp/Dn page   +/- window   space pin   a all/pinned   / filter   s sort   r rate   enter details   p pause   ← → view   q quit

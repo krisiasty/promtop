@@ -27,7 +27,7 @@ func TestSeriesWide(t *testing.T) {
 	out := m.render()
 	assertFrame(t, out, 146, 36)
 	lines := plainLines(out)
-	if !strings.HasPrefix(lines[3], "╭─ families · 8/") || cellOf(lines[3], "╮") != 43 {
+	if !strings.HasPrefix(lines[3], "╭─ families · 21/") || cellOf(lines[3], "╮") != 43 {
 		t.Errorf("families box top = %q", lines[3])
 	}
 	selected := false
@@ -44,8 +44,8 @@ func TestSeriesWide(t *testing.T) {
 		cellOf(lines[7], "╭─ label cardinality ─") != 47 {
 		t.Errorf("right pane:\n%s", strings.Join(lines[4:8], "\n"))
 	}
-	if !strings.Contains(lines[8], "│ method        4   ████        GET POST PUT DELETE") ||
-		!strings.Contains(lines[9], "│ code          5   █████       200 404 500 400 204") {
+	if !strings.Contains(lines[8], "│ method        4   ████        DELETE GET POST PUT") ||
+		!strings.Contains(lines[9], "│ code          5   █████       200 204 400 404 500") {
 		t.Errorf("label rows:\n%s\n%s", lines[8], lines[9])
 	}
 	if !strings.Contains(lines[12], "╭─ rate(http_requests_total[1m]) by method × code ─") ||
@@ -97,7 +97,7 @@ func TestSeriesNarrow(t *testing.T) {
 		!strings.HasPrefix(lines[11], "│ method\\code      200") {
 		t.Errorf("detail:\n%s", strings.Join(lines[3:12], "\n"))
 	}
-	press(m, "down")
+	press(m, "up") // families sort by name: the histogram comes first
 	lines = plainLines(m.render())
 	if !strings.HasPrefix(lines[4], "http_request_duration_seconds  histogram  13 series") || !strings.Contains(plain(m.render()), "rate(_bucket[1m]) — cumulative") ||
 		!strings.Contains(plain(m.render()), `│ le="0.005" `) {
