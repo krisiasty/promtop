@@ -77,7 +77,8 @@ type heatCache struct {
 	seq      uint64
 	window   time.Duration
 	bySeries bool
-	idx      int
+	filter   string
+	idx      int // in the filtered list
 	ok       bool
 	d        store.HeatData
 }

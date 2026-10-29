@@ -322,3 +322,49 @@ func TestHeatmapMeanWithoutObservations(t *testing.T) {
 		}
 	}
 }
+
+func TestHeatmapFilter(t *testing.T) {
+	f := newFixture(t, 0)
+	f.apply(`# TYPE http_seconds histogram
+http_seconds_bucket{handler="api",le="1"} 1
+http_seconds_bucket{handler="api",le="+Inf"} 1
+http_seconds_sum{handler="api"} 1
+http_seconds_count{handler="api"} 1
+http_seconds_bucket{handler="web",le="1"} 1
+http_seconds_bucket{handler="web",le="+Inf"} 1
+http_seconds_sum{handler="web"} 1
+http_seconds_count{handler="web"} 1
+# TYPE rpc_seconds histogram
+rpc_seconds_bucket{le="1"} 1
+rpc_seconds_bucket{le="+Inf"} 1
+rpc_seconds_sum 1
+rpc_seconds_count 1
+`)
+	m := f.model(146, 36)
+	m.view = ViewHeatmap
+	press(m, "/", "R", "P", "C", "enter")
+	lines := plainLines(m.render())
+	if !strings.HasPrefix(lines[3], "rpc_seconds  histogram") || !strings.HasPrefix(lines[34], `filter "RPC" · 1 match · esc to clear`) {
+		t.Errorf("rpc filter: %q / %q", lines[3], lines[34])
+	}
+	press(m, "esc")
+	if lines = plainLines(m.render()); !strings.HasPrefix(lines[3], "rpc_seconds  histogram") {
+		t.Errorf("clearing the filter keeps rpc_seconds selected: %q", lines[3])
+	}
+
+	press(m, "m", "/", "w", "e", "b", "enter")
+	if lines = plainLines(m.render()); !strings.HasPrefix(lines[3], `http_seconds{handler="web"}  histogram`) ||
+		!strings.HasPrefix(lines[34], `filter "web" · 1 match`) {
+		t.Errorf("label filter: %q / %q", lines[3], lines[34])
+	}
+	press(m, "esc", "/", "h", "t", "t", "p", "enter", "G")
+	if lines = plainLines(m.render()); !strings.HasPrefix(lines[3], `http_seconds{handler="web"}  histogram`) ||
+		!strings.HasPrefix(lines[34], `filter "http" · 2 match`) {
+		t.Errorf("G stops at the last match: %q / %q", lines[3], lines[34])
+	}
+
+	press(m, "esc", "/", "z", "enter")
+	if lines = plainLines(m.render()); lineWith(lines, "No histograms match. Esc clears the filter.") == "" {
+		t.Errorf("empty filter result:\n%s", strings.Join(lines, "\n"))
+	}
+}

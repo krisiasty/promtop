@@ -166,15 +166,19 @@ func (m *Model) editFilter(k tea.KeyPressMsg, s string) {
 }
 
 // changeFilter applies a filter change, keeping the selected Series family
-// selected if it still matches, else selecting the first, and scrolling Raw
-// back to the top.
+// and heat source selected if they still match, else selecting the first,
+// and scrolling Raw back to the top.
 func (m *Model) changeFilter(change func()) {
-	name := ""
+	name, heat := "", ""
 	if fams := m.families(); len(fams) > 0 {
 		name = fams[clamp(m.famIdx, 0, len(fams)-1)].Name
 	}
+	if srcs := m.heatSources(); len(srcs) > 0 {
+		heat = heatSourceID(srcs[clamp(m.heatIdx, 0, len(srcs)-1)])
+	}
 	change()
 	m.famIdx = max(0, slices.IndexFunc(m.families(), func(f *store.FamilyInfo) bool { return f.Name == name }))
+	m.heatIdx = max(0, slices.IndexFunc(m.heatSources(), func(src store.HeatSource) bool { return heatSourceID(src) == heat }))
 	m.rawOff = 0
 }
 

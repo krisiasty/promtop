@@ -64,6 +64,8 @@ func (m *Model) render() string {
 	switch m.view {
 	case ViewSeries:
 		matches = len(m.families())
+	case ViewHeatmap:
+		matches = m.heatSourceCount()
 	case ViewRaw:
 		matches = m.rawMatches()
 	}
