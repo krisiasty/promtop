@@ -1,8 +1,10 @@
 package store
 
 import (
+	"cmp"
 	"math"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -209,9 +211,55 @@ func (s *Store) Apply(r *scrape.Result) {
 			}
 		}
 	}
+	s.sortByName()
 	s.forget(seq)
 	s.updateReset(r.At, resets > 0, restarted)
 	s.updateHighCard()
+}
+
+// sortByName orders families by name, series by family, sample name and
+// labels, and label values, so rows stay put when an exporter that ranges
+// over maps (openstack-exporter) shuffles its exposition every scrape.
+func (s *Store) sortByName() {
+	slices.SortFunc(s.families, func(a, b *FamilyInfo) int { return cmp.Compare(a.Name, b.Name) })
+	for _, fi := range s.families {
+		slices.SortFunc(fi.Series, compareSeries)
+		for _, vals := range fi.LabelValues {
+			sortLabelValues(vals)
+		}
+	}
+	slices.SortFunc(s.order, compareSeries)
+}
+
+// sortLabelValues puts values that parse as numbers (le, quantile, cpu) first,
+// in numeric order, then the rest as text.
+func sortLabelValues(vals []string) {
+	nums := map[string]float64{}
+	for _, v := range vals {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			nums[v] = f
+		}
+	}
+	slices.SortFunc(vals, func(a, b string) int {
+		x, an := nums[a]
+		y, bn := nums[b]
+		switch {
+		case an && bn:
+			return cmp.Or(cmp.Compare(x, y), cmp.Compare(a, b))
+		case an:
+			return -1
+		case bn:
+			return 1
+		}
+		return cmp.Compare(a, b)
+	})
+}
+
+// compareSeries compares sample names before labels, so a summary's quantiles
+// come before its _count and _sum.
+func compareSeries(a, b *Series) int {
+	return cmp.Or(cmp.Compare(a.Family, b.Family), cmp.Compare(a.Name, b.Name),
+		cmp.Compare(a.Key[len(a.Name):], b.Key[len(b.Name):]))
 }
 
 // Fail records one failed scrape; data is untouched (no partial updates).

@@ -2,7 +2,9 @@ package store
 
 import (
 	"fmt"
+	"maps"
 	"math"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -53,7 +55,7 @@ func TestApplySeriesAndFamilies(t *testing.T) {
 	for _, s := range st.Series() {
 		ids = append(ids, s.ID+":"+s.Type.String())
 	}
-	want := "up:gauge " + reqID + `:counter node_memory_bytes:gauge rpc_seconds{quantile="0.5"}:gauge rpc_seconds_sum:counter rpc_seconds_count:counter req_duration_seconds:histogram`
+	want := reqID + `:counter node_memory_bytes:gauge req_duration_seconds:histogram rpc_seconds{quantile="0.5"}:gauge rpc_seconds_count:counter rpc_seconds_sum:counter up:gauge`
 	if got := strings.Join(ids, " "); got != want {
 		t.Fatalf("series = %s\nwant     %s", got, want)
 	}
@@ -75,8 +77,8 @@ func TestApplySeriesAndFamilies(t *testing.T) {
 		t.Errorf("times = %v", ts)
 	}
 	fams := st.Families()
-	if len(fams) != 5 || fams[1].Samples != 1 || strings.Join(fams[1].LabelNames, ",") != "method,code" ||
-		len(fams[1].Series) != 1 || fams[4].Samples != 5 || strings.Join(fams[4].LabelNames, ",") != "le" || len(fams[4].Hists) != 1 {
+	if len(fams) != 5 || fams[0].Samples != 1 || strings.Join(fams[0].LabelNames, ",") != "method,code" ||
+		len(fams[0].Series) != 1 || fams[2].Samples != 5 || strings.Join(fams[2].LabelNames, ",") != "le" || len(fams[2].Hists) != 1 {
 		t.Errorf("families = %+v", fams)
 	}
 	if v, ok := st.PrevValue(reqKey); !ok || v != 100 {
@@ -1039,5 +1041,65 @@ func TestFailuresBeforeEachScrape(t *testing.T) {
 	apply(t, st, 11, "a 3\n")
 	if got := fmt.Sprint(st.Failures(1, 3)); got != "[0 3 0]" {
 		t.Errorf("Failures = %s", got)
+	}
+}
+
+// Exporters that range over maps (openstack-exporter) shuffle families and
+// series on every scrape; rows must not move with them.
+func TestApplyOrderIgnoresExpositionOrder(t *testing.T) {
+	a := `# TYPE b_up gauge
+b_up 1
+# TYPE a_info gauge
+a_info{name="y"} 1
+a_info{name="10"} 1
+a_info{name="x"} 1
+a_info{name="2"} 1
+# TYPE c_seconds histogram
+c_seconds_bucket{svc="q",le="+Inf"} 1
+c_seconds_bucket{svc="q",le="1"} 1
+c_seconds_sum{svc="q"} 1
+c_seconds_count{svc="q"} 1
+c_seconds_bucket{svc="p",le="+Inf"} 1
+c_seconds_sum{svc="p"} 1
+c_seconds_count{svc="p"} 1
+`
+	b := `# TYPE c_seconds histogram
+c_seconds_bucket{svc="p",le="+Inf"} 2
+c_seconds_sum{svc="p"} 2
+c_seconds_count{svc="p"} 2
+c_seconds_bucket{svc="q",le="1"} 2
+c_seconds_bucket{svc="q",le="+Inf"} 2
+c_seconds_sum{svc="q"} 2
+c_seconds_count{svc="q"} 2
+# TYPE a_info gauge
+a_info{name="2"} 1
+a_info{name="x"} 1
+a_info{name="10"} 1
+a_info{name="y"} 1
+# TYPE b_up gauge
+b_up 1
+`
+	const want = `a_info{name="10"} a_info{name="2"} a_info{name="x"} a_info{name="y"} b_up c_seconds{svc="p"} c_seconds{svc="q"}` +
+		` | a_info name=2,10,x,y b_up c_seconds le=1,+Inf svc=p,q`
+	order := func(st *Store) string {
+		var ids, fams []string
+		for _, s := range st.Series() {
+			ids = append(ids, s.ID)
+		}
+		for _, f := range st.Families() {
+			fams = append(fams, f.Name)
+			names := slices.Sorted(maps.Keys(f.LabelValues))
+			for _, n := range names {
+				fams = append(fams, n+"="+strings.Join(f.LabelValues[n], ","))
+			}
+		}
+		return strings.Join(ids, " ") + " | " + strings.Join(fams, " ")
+	}
+	st := New(time.Second)
+	for i, text := range []string{a, b, a} {
+		apply(t, st, i, text)
+		if got := order(st); got != want {
+			t.Fatalf("scrape %d: order = %s\nwant          %s", i, got, want)
+		}
 	}
 }

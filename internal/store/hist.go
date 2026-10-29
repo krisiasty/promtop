@@ -62,6 +62,7 @@ func (s *Store) applyHistogram(f *expo.Family, fi *FamilyInfo, seq uint64) {
 			g.h.count.Put(seq, smp.Value)
 		}
 	}
+	slices.Sort(keys) // fi.Hists in label order, like fi.Series
 	for _, k := range keys {
 		g := groups[k]
 		les := make([]float64, 0, len(g.buckets))

@@ -74,7 +74,7 @@ func (m *Model) buildRows(sort SortKey) []*store.Series {
 	case SortP99:
 		key = func(x stats.Stats) float64 { return x.P99 }
 	default:
-		return out // "name" keeps exposition order, as in the design
+		return out // the store keeps series sorted by name
 	}
 	keys := make(map[*store.Series]float64, len(out))
 	for _, s := range out {

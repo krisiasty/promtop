@@ -84,7 +84,7 @@ func (f *fixture) model(w, h int) *Model {
 	for _, id := range defaultPins {
 		f.st.SetPinned(id, true)
 	}
-	m.cursor = 1
+	m.cursor = max(rowIndex(m, "go_goroutines"), 0)
 	return m
 }
 
@@ -158,6 +158,16 @@ func rowIndex(m *Model, id string) int {
 		}
 	}
 	return -1
+}
+
+// lineWith returns the first line containing sub, or "".
+func lineWith(lines []string, sub string) string {
+	for _, ln := range lines {
+		if strings.Contains(ln, sub) {
+			return ln
+		}
+	}
+	return ""
 }
 
 func familyIndex(m *Model, name string) int {

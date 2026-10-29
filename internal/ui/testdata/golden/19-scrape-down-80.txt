@@ -1,36 +1,36 @@
  promtop   http://10.0.3.14:9100/metrics  ✕ down  last ok 7s ago        12:37:06
  1 Table   2 History   3 Graph   4 Heatmap   5 Series   6 Raw
-────────────────────────────────────────────────────────────────────────────────
+───────────────────────────────────────────────────────────────────── ▲ 6 more ─
  ✕ target down: connection refused · retry in 8s                      e details
 
    NAME ▲                            TYP     CURRENT         Δ      AVG      P99
-   up                                gau        1.00         0     1.00     1.00
-▸● go_goroutines                     gau         200     −11.0      232      324
-   go_threads                        gau        18.0         0     17.8     21.0
-   go_memstats_heap_alloc_bytes      gau      71.3Mi   −10.5Mi   80.0Mi   98.7Mi
- ● process_resident_memory_bytes     gau     202.3Mi  −405.0Ki  203.0Mi  206.4Mi
- ● process_cpu_seconds_total         ctr       0.486    −0.035    0.428    0.520
-   process_open_fds                  gau        64.0     −4.00     65.2     71.0
- ● http_requests_total{method="GET"… ctr         172     −18.0      188      237
-   http_requests_total{method="GET"… ctr        5.00     +1.00     5.97     8.00
-   http_requests_total{method="GET"… ctr           0         0     1.31     5.00
-   http_requests_total{method="POST… ctr        43.0     −8.00     42.0     53.0
-   http_requests_total{method="POST… ctr        3.00     +1.00     2.56     3.01
-   http_requests_total{method="POST… ctr           0     −1.00    0.317     1.00
-   http_requests_total{method="PUT"… ctr        11.0         0     8.89     12.0
-   http_requests_total{method="DELE… ctr        4.00     +1.00     3.10     4.00
-   http_request_duration_seconds     his      74.9ms   +0.74ms   85.7ms  759.5ms
-   http_inflight_requests            gau        19.0     −4.00     13.4     27.0
-   db_pool_connections{state="activ… gau        9.00     +3.00     17.9     26.0
    db_pool_connections{state="idle"} gau        8.00         0     12.2     21.0
- ● cache_hits_total                  ctr         961     −39.0      956     1208
-   cache_misses_total                ctr        78.0         0     70.3     92.0
- ● queue_depth{queue="emails"}       gau        64.0     +9.00     48.2     93.0
-   queue_depth{queue="webhooks"}     gau        4.00     +3.00     4.23     9.00
-   node_load1                        gau        1.80   −0.0008     1.84     2.16
-   node_load5                        gau        1.66   −0.0082     1.60     1.73
-   node_load15                       gau        1.51    +0.015     1.50     1.54
+   db_queries_total{op="delete"}     ctr        2.00         0     2.10     3.00
+   db_queries_total{op="insert"}     ctr        25.0         0     24.5     31.0
+   db_queries_total{op="select"}     ctr         319     +7.00      314      419
+   db_queries_total{op="update"}     ctr        19.0     +1.00     16.8     21.0
+   go_gc_cycles_total                ctr           0         0    0.027     1.00
    go_gc_duration_seconds{quantile=… gau      0.20ms         0   0.20ms   0.30ms
-──────────────────────────────────────────────────────────────────── ▼ 60 more ─
-87/87 series · 6 pinned · sort name · rows 1–27 of 87
+   go_gc_duration_seconds{quantile=… gau      0.40ms         0   0.38ms   0.50ms
+   go_gc_duration_seconds{quantile=… gau      0.50ms         0   0.54ms   0.70ms
+   go_gc_duration_seconds{quantile=… gau      0.80ms         0   0.80ms   1.00ms
+   go_gc_duration_seconds{quantile=… gau      4.00ms   +0.10ms   3.49ms   4.40ms
+   go_gc_duration_seconds_count      ctr           0         0    0.020     1.00
+   go_gc_duration_seconds_sum        ctr           0         0        0   0.0001
+▸● go_goroutines                     gau         200     −11.0      232      324
+   go_memstats_frees_total           ctr       19.3k      +709    18.6k    23.1k
+   go_memstats_heap_alloc_bytes      gau      71.3Mi   −10.5Mi   80.0Mi   98.7Mi
+   go_memstats_heap_objects          gau      362.4k    −33.7k   411.8k   517.5k
+   go_memstats_mallocs_total         ctr       17.3k     −1763    18.8k    23.6k
+   go_memstats_stack_inuse_bytes     gau       3.1Mi    +5.8Ki    3.0Mi    3.3Mi
+   go_memstats_sys_bytes             gau     134.8Mi   +59.7Ki  135.5Mi  137.0Mi
+   go_threads                        gau        18.0         0     17.8     21.0
+   grpc_server_handled_total{grpc_m… ctr        1.00     +1.00    0.377     1.00
+   grpc_server_handled_total{grpc_m… ctr        5.00         0     5.51     7.00
+   grpc_server_handled_total{grpc_m… ctr        70.0     +1.00     63.4     82.0
+   grpc_server_handled_total{grpc_m… ctr        19.0     +3.00     21.7     29.0
+   grpc_server_handled_total{grpc_m… ctr           0         0        0        0
+   grpc_server_handled_total{grpc_m… ctr           0         0    0.043     1.00
+──────────────────────────────────────────────────────────────────── ▼ 54 more ─
+87/87 series · 6 pinned · sort name · rows 7–33 of 87
 e error   ↑ ↓ move   PgUp/Dn page   +/- window   p pause   ← → view   q quit

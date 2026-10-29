@@ -62,7 +62,7 @@ func TestHistoryLayout(t *testing.T) {
 		t.Errorf("+ changes the window and resets scroll: %q / %d", lines[3], m.histOff)
 	}
 	press(m, "down", "]")
-	if m.selID != "go_threads" || m.histOff != 0 {
+	if m.selID != "go_memstats_frees_total" || m.histOff != 0 {
 		t.Errorf("] selects the next series and resets scroll: %q / %d", m.selID, m.histOff)
 	}
 	press(m, "[")
