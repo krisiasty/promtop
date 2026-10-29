@@ -62,8 +62,13 @@ func (g *Target) gauss() float64 {
 	for v == 0 {
 		v = g.rng.Float64()
 	}
-	return math.Sqrt(-2*math.Log(u)) * math.Cos(2*math.Pi*v)
+	return snap(math.Sqrt(-2*math.Log(u))*math.Cos(2*math.Pi*v), 1<<20)
 }
+
+// snap rounds v to a multiple of 1/scale. math.Log, Exp and Cos differ in
+// the last bit between architectures (assembly on amd64); snapping their
+// results keeps the simulation, and the UI goldens, identical everywhere.
+func snap(v, scale float64) float64 { return math.Round(v*scale) / scale }
 
 func (g *Target) makeSeries() []*sim {
 	var out []*sim
@@ -249,7 +254,7 @@ func (g *Target) stepHist() {
 		if slow && g.rng.Float64() < 0.3 {
 			mu, sd = math.Log(0.6), 0.8
 		}
-		x := math.Exp(mu + sd*g.gauss())
+		x := snap(math.Exp(mu+sd*g.gauss()), 1<<24)
 		k := 0
 		for x > histLE[k] {
 			k++

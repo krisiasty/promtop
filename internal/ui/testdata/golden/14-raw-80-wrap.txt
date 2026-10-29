@@ -13,7 +13,7 @@
 │    9  go_threads 18                                                          │
 │   10  # HELP go_memstats_heap_alloc_bytes Bytes of allocated heap objects.   │
 │   11  # TYPE go_memstats_heap_alloc_bytes gauge                              │
-│   12  go_memstats_heap_alloc_bytes 74752601   -10967200                      │
+│   12  go_memstats_heap_alloc_bytes 74752602   -10967200                      │
 │   13  # HELP process_resident_memory_bytes Resident memory size in bytes.    │
 │   14  # TYPE process_resident_memory_bytes gauge                             │
 │   15  process_resident_memory_bytes 212170290   -414713                      │
