@@ -136,7 +136,7 @@ func (m *Model) key(k tea.KeyPressMsg) tea.Cmd {
 		if m.view == ViewSeries && m.famOpen {
 			m.famOpen = false
 		} else {
-			m.keepFamily(func() { m.filter = "" })
+			m.changeFilter(func() { m.filter = "" })
 		}
 	}
 	return nil
@@ -146,7 +146,7 @@ func (m *Model) filterKey(k tea.KeyPressMsg, s string) {
 	if s != "esc" && s != "enter" && s != "backspace" && k.Text == "" {
 		return
 	}
-	m.keepFamily(func() { m.editFilter(k, s) })
+	m.changeFilter(func() { m.editFilter(k, s) })
 	m.setCursor(m.rows(), 0)
 }
 
@@ -165,15 +165,17 @@ func (m *Model) editFilter(k tea.KeyPressMsg, s string) {
 	}
 }
 
-// keepFamily applies a filter change, keeping the selected Series family
-// selected if it still matches, else selecting the first.
-func (m *Model) keepFamily(change func()) {
+// changeFilter applies a filter change, keeping the selected Series family
+// selected if it still matches, else selecting the first, and scrolling Raw
+// back to the top.
+func (m *Model) changeFilter(change func()) {
 	name := ""
 	if fams := m.families(); len(fams) > 0 {
 		name = fams[clamp(m.famIdx, 0, len(fams)-1)].Name
 	}
 	change()
 	m.famIdx = max(0, slices.IndexFunc(m.families(), func(f *store.FamilyInfo) bool { return f.Name == name }))
+	m.rawOff = 0
 }
 
 func viewKey(s string, cur View) (View, bool) {
