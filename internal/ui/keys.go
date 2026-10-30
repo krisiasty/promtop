@@ -27,7 +27,8 @@ func (m *Model) key(k tea.KeyPressMsg) tea.Cmd {
 		m.filterKey(k, s)
 		return nil
 	}
-	if v, ok := viewKey(s, m.view); ok {
+	// ← → scroll the details popup's label values instead.
+	if v, ok := viewKey(s, m.view); ok && (!m.detailOpen || s != "left" && s != "right") {
 		m.detailOpen, m.errOpen, m.view = false, false, v
 		return nil
 	}
@@ -50,6 +51,14 @@ func (m *Model) key(k tea.KeyPressMsg) tea.Cmd {
 			m.labOff = max(0, m.labOff-m.detailPageSize())
 		case "pgdown":
 			m.labOff = min(m.labMax(), m.labOff+m.detailPageSize())
+		case "left":
+			m.labHOff = clamp(m.labHOff-hStep, 0, m.labHMax())
+		case "right":
+			m.labHOff = clamp(m.labHOff+hStep, 0, m.labHMax())
+		case "home":
+			m.labHOff = 0
+		case "end":
+			m.labHOff = m.labHMax()
 		case "space":
 			m.togglePin()
 		}
@@ -128,7 +137,7 @@ func (m *Model) key(k tea.KeyPressMsg) tea.Cmd {
 	case "enter":
 		switch {
 		case m.view <= ViewGraph && len(m.rows()) > 0:
-			m.detailOpen, m.labOff = true, 0
+			m.detailOpen, m.labOff, m.labHOff = true, 0, 0
 		case m.view == ViewSeries && m.w < 146:
 			m.famOpen = true
 		}
@@ -273,7 +282,7 @@ func (m *Model) detailPageSize() int {
 	if s.Hist != nil {
 		return m.bucketVisible(m.bodyHeight(), s)
 	}
-	return m.labVisible(m.bodyHeight(), len(s.Labels))
+	return m.labVisible(m.bodyHeight(), fitLabels(m.w, s.Labels).rows)
 }
 
 func (m *Model) togglePin() {

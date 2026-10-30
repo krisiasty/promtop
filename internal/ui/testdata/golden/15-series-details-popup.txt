@@ -17,13 +17,13 @@
    kafka_consumer_la│ │ last change this scrape   raw value            8                                                   │ │55  ▅▃▂▂▃▅▆▅▅▃▆▅▄▅▄▅
    kafka_consumer_la│ ╰────────────────────────────────────────────────────────────────────────────────────────────────────╯ │18  ▅▇▅▃▄▄▄▄▄▅▃▃▃▃▂▃
 ▸  kube_pod_containe│ ╭─ labels · 20 ──────────────────────────────────────────────────────────────────────────────────────╮ │ 0  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃
-   node_cpu_seconds_│ │ cluster              "prod-eu-1"                  region               "eu-central-1"              │ │10  ▄▃▅▃▃▄▅▃▆▆▅▆▅▅▂▃
-   node_cpu_seconds_│ │ zone                 "eu-central-1b"              namespace            "payments"                  │ │23  ▂▄▂▄▄▆▅▅▆▆▅▄▃▃▂▃
-   node_cpu_seconds_│ │ pod                  "payments-api-7c9f8d6b54-…   container            "api"                       │ │17  ▂▃▄▄▃▅▆▅▂▄▄▅▄▆▇▇
-   node_cpu_seconds_│ │ image                "registry.internal/paymen…   image_id             "sha256:4f1c9e0a7d2b"       │ │56  ▆▃▂▅▃▅▄▂▅▆▆▅▃▅▄▄
-   node_cpu_seconds_│ │ container_id         "containerd://9b1e44c07a3…   node                 "ip-10-0-3-14.ec2.internal" │ │36  ▃▄▅▃▃▃▂▄▅▅▃▄▃▅▇▅
-   node_cpu_seconds_│ │ host_ip              "10.0.3.14"                  pod_ip               "10.42.7.118"               │ │26  ▅▄▃▂▃▅▅▄▃▄▄▃▄▆▇▅
-   node_cpu_seconds_│ ╰───────────────────────────────────────────────────────────────────────────────────────── ▼ 8 more ─╯ │38  ▃▄▅▃▄█▅▅▄▃▄▆▅▄▃▂
+   node_cpu_seconds_│ │ cluster          "prod-eu-1"                                                                       │ │10  ▄▃▅▃▃▄▅▃▆▆▅▆▅▅▂▃
+   node_cpu_seconds_│ │ region           "eu-central-1"                                                                    │ │23  ▂▄▂▄▄▆▅▅▆▆▅▄▃▃▂▃
+   node_cpu_seconds_│ │ zone             "eu-central-1b"                                                                   │ │17  ▂▃▄▄▃▅▆▅▂▄▄▅▄▆▇▇
+   node_cpu_seconds_│ │ namespace        "payments"                                                                        │ │56  ▆▃▂▅▃▅▄▂▅▆▆▅▃▅▄▄
+   node_cpu_seconds_│ │ pod              "payments-api-7c9f8d6b54-x2kqz"                                                   │ │36  ▃▄▅▃▃▃▂▄▅▅▃▄▃▅▇▅
+   node_cpu_seconds_│ │ container        "api"                                                                             │ │26  ▅▄▃▂▃▅▅▄▃▄▄▃▄▆▇▅
+   node_cpu_seconds_│ ╰──────────────────────────────────────────────────────────────────────────────────────── ▼ 14 more ─╯ │38  ▃▄▅▃▄█▅▅▄▃▄▆▅▄▃▂
    node_cpu_seconds_│ ────────────────────────────────────────────────────────────────────────────────────────────────────── │52  ▆▄▅▄▄▄▂▅▅▅▆▅▇▇▅▆
    node_cpu_seconds_│ enter/esc close   space pin  ↑ ↓ scroll labels                                                         │45  ▅▄▅▅▇▆▆▂▂▄▅▅▃▆▄▃
    node_cpu_seconds_╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯22  ▆▆▅▇▅▅▆▆▃▃▃▃▂▄▅▆

@@ -78,6 +78,7 @@ cannot be forwarded to another endpoint.
 | `[` / `]` | History: previous / next series |
 | `space` | pin / unpin the selected series (pins last for the session) |
 | `enter` | series details (Table, History, Graph; `↑ ↓` scroll labels or buckets); open family (Series, narrow) |
+| `← →`, `home` / `end` | series details: scroll long label values (instead of switching view) |
 | `esc` | close popup → back to families → clear filter |
 | `/` | filter by substring (enter keeps, esc clears) |
 | `a` | all ↔ pinned only |
