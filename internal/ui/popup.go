@@ -12,10 +12,7 @@ import (
 	"github.com/krisiasty/promtop/internal/store"
 )
 
-const (
-	maxLabelRows = 6
-	hStep        = 8 // cells ← → scroll the details popup's label values
-)
+const hStep = 8 // cells ← → scroll the details popup's label values
 
 // popup returns the open popup's lines; render centres it over the body.
 func (m *Model) popup(lay layout, rows []*store.Series) []string {
@@ -74,11 +71,11 @@ func fitLabels(w int, ls []expo.Label) labelFit {
 	return f
 }
 
-// labVisible is how many of rows label rows the details popup shows (1..6).
+// labVisible is how many of rows label rows the details popup shows: as many
+// as the body height leaves room for, at least one.
 func (m *Model) labVisible(bodyH, rows int) int {
 	statRows := (14 + statCols(m.w) - 1) / statCols(m.w)
-	lv := clamp(bodyH-(12+statRows), 1, maxLabelRows)
-	return min(lv, max(1, rows))
+	return clamp(bodyH-(12+statRows), 1, max(1, rows))
 }
 
 func (m *Model) labMax() int {
