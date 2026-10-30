@@ -47,7 +47,7 @@ func (m *Model) viewGraph(lay layout, rows []*store.Series) body {
 		lo, hi = 0, 1
 	}
 	step := float64(hc-1) / 4
-	for i, ln := range format.BrailleTimed(vals, times, wc, hc, lo, hi, m.st.LastTime(), m.window) {
+	for i, ln := range format.BrailleTimed(vals, times, wc, hc, lo, hi, m.st.LastTime(), m.window, m.st.Interval) {
 		label, ax := "", " │"
 		for q := 0; q <= 4; q++ {
 			if int(math.Round(float64(q)*step)) == i {
