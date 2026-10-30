@@ -180,6 +180,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.nextTick()
 	case tea.KeyPressMsg:
 		return m.handleKey(msg)
+	case tea.PasteMsg:
+		m.pasteFilter(msg.Content)
 	}
 	return m, nil
 }
