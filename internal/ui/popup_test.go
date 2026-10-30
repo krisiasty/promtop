@@ -22,8 +22,11 @@ func TestDetailsPopup(t *testing.T) {
 	rows := m.rows()
 	s, idx := m.selected(rows)
 	pop := m.detailsPopup(layout{146, 30}, s, idx, len(rows))
-	if len(pop) != 22 {
-		t.Fatalf("popup height = %d, want 22", len(pop))
+	if len(pop) != 30 { // 14 of the 20 labels fill the 30-row body
+		t.Fatalf("popup height = %d, want 30", len(pop))
+	}
+	if short := m.detailsPopup(layout{146, 20}, s, idx, len(rows)); len(short) != 20 {
+		t.Errorf("popup height in a 20-row body = %d, want 20", len(short))
 	}
 	for i, ln := range pop {
 		if format.Width(ln) != 106 {
@@ -46,30 +49,30 @@ func TestDetailsPopup(t *testing.T) {
 		{6, "│ │ current "},
 		{11, "│ ╭─ labels · 20 ─"},
 		{12, "│ │ cluster          \"prod-eu-1\" "},
-		{19, "│ " + strings.Repeat("─", 102) + " │"},
-		{20, "│ enter/esc close   space pin  ↑ ↓ scroll labels "},
+		{27, "│ " + strings.Repeat("─", 102) + " │"},
+		{28, "│ enter/esc close   space pin  ↑ ↓ scroll labels "},
 	}
 	for _, c := range checks {
 		if !strings.HasPrefix(p[c.line], c.want) {
 			t.Errorf("line %d = %q, want prefix %q", c.line, p[c.line], c.want)
 		}
 	}
-	if !strings.HasSuffix(p[0], fmt.Sprintf(" %d / %d ─╮", idx+1, len(rows))) || !strings.HasSuffix(p[18], " ▼ 14 more ─╯ │") {
-		t.Errorf("border markers: %q / %q", p[0], p[18])
+	if !strings.HasSuffix(p[0], fmt.Sprintf(" %d / %d ─╮", idx+1, len(rows))) || !strings.HasSuffix(p[26], " ▼ 6 more ─╯ │") {
+		t.Errorf("border markers: %q / %q", p[0], p[26])
 	}
 	press(m, "enter", "down", "down")
 	pop = m.detailsPopup(layout{146, 30}, s, idx, len(rows))
-	if top, bot := plain(pop[11]), plain(pop[18]); !strings.HasSuffix(top, " ▲ 2 more ─╮ │") || !strings.HasSuffix(bot, " ▼ 12 more ─╯ │") {
+	if top, bot := plain(pop[11]), plain(pop[26]); !strings.HasSuffix(top, " ▲ 2 more ─╮ │") || !strings.HasSuffix(bot, " ▼ 4 more ─╯ │") {
 		t.Errorf("after scrolling: %q / %q", top, bot)
 	}
 	press(m, "pgdown", "pgdown", "pgdown")
-	if m.labOff != 14 {
+	if m.labOff != 6 {
 		t.Errorf("label scroll must stop at the end: %d", m.labOff)
 	}
 	out := m.render()
 	assertFrame(t, out, 146, 36)
 	lines := plainLines(out)
-	top := lines[3+4] // body row 4 = (30-22)/2
+	top := lines[3] // body row 0 = (30-30)/2
 	if i := strings.Index(top, "╭─ series details"); i < 0 || format.Width(top[:i]) != 20 {
 		t.Errorf("popup not centred: %q", top)
 	}

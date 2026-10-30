@@ -1,36 +1,36 @@
  promtop   http://10.0.3.14:9100/metrics  ● live  every 1s · 150ms · 99 samples · scrape #901                                             12:36:59
  1 Table   2 History   3 Graph   4 Heatmap   5 Series   6 Raw
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ▲ 34 more ─
-   NAME ▲                              TYP     CURRENT      PREV         Δ      MIN      MAX      AVG      P50      P95      P99  TREND
-   grpc_server_handled_total{grpc_met… ctr           0         0         0        0     1.00    0.123        0     1.00     1.00  ▃▅▁▃▁▃▁▁▅▃▃▁▁▁▃▁
-   http_inflight_requests              gau        19.0      23.0     −4.00        0     32.0     13.4     14.0     23.0     27.0  ▃▂▅▆▅▅▂▅▄▅▇▆▆▅▇▇
-   http_request_duration_seconds       his      74.9ms    74.2ms   +0.74ms        0   >5.00s   85.7ms   46.6ms  220.9ms  759.5ms  ▅▄▅▆▃▅▄▄▅▄▅▄▅▅▆▅
- ● http_requests_tot╭─ series details ───────────────────────────────────────────────────────────────────────────── 49 / 87 ─╮37  ▆▇▅▅▂▃▅▇▇▄▅▂▆▇▅▄
-   http_requests_tot│ kube_pod_container_status_restarts_total{…}                                                            │.0  ▆▅▅▅▄▅▇▆▄▃▃▂▄▃▄▆
-   http_requests_tot│ counter  unit: —                                                                                       │.0  ▅▄▅▅▅▇▅▄▂▂▃▃▃▅▃▆
-   http_requests_tot│ # HELP Number of container restarts per container.                                                     │00  ▇▅▄▄▃▅▅▅▄▅▅▅▄▅▇▆
-   http_requests_tot│                                                                                                        │01  █▅▅█▁▅▅▆▅▆▆██▆▅▃
-   http_requests_tot│ ╭─ window 5m · rate/s ───────────────────────────────────────────────────────────────────────────────╮ │00  ▃▅▅▂▅▅▂▄▅▅▇▅▆▄▃▂
-   http_requests_tot│ │ current            1.00   min                  0   previous             0   max               1.00 │ │00  ▅▆▅▅▃█▅▆▃▆▆█▅█▆▃
-   http_requests_tot│ │ delta             +1.00   mean            0.0067   median               0   stddev           0.081 │ │00  ▅▅▃▃▆▁▃▃▆▅▁▃▅▅▃▃
-   kafka_consumer_la│ │ p90                   0   p95                  0   p99                  0   samples            300 │ │90  ▅▅▄▄▄▅▅▄▇█▇▄▃▂▂▄
-   kafka_consumer_la│ │ last change this scrape   raw value            8                                                   │ │55  ▅▃▂▂▃▅▆▅▅▃▆▅▄▅▄▅
-   kafka_consumer_la│ ╰────────────────────────────────────────────────────────────────────────────────────────────────────╯ │18  ▅▇▅▃▄▄▄▄▄▅▃▃▃▃▂▃
-▸  kube_pod_containe│ ╭─ labels · 20 ──────────────────────────────────────────────────────────────────────────────────────╮ │ 0  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃
-   node_cpu_seconds_│ │ cluster          "prod-eu-1"                                                                       │ │10  ▄▃▅▃▃▄▅▃▆▆▅▆▅▅▂▃
-   node_cpu_seconds_│ │ region           "eu-central-1"                                                                    │ │23  ▂▄▂▄▄▆▅▅▆▆▅▄▃▃▂▃
-   node_cpu_seconds_│ │ zone             "eu-central-1b"                                                                   │ │17  ▂▃▄▄▃▅▆▅▂▄▄▅▄▆▇▇
-   node_cpu_seconds_│ │ namespace        "payments"                                                                        │ │56  ▆▃▂▅▃▅▄▂▅▆▆▅▃▅▄▄
-   node_cpu_seconds_│ │ pod              "payments-api-7c9f8d6b54-x2kqz"                                                   │ │36  ▃▄▅▃▃▃▂▄▅▅▃▄▃▅▇▅
-   node_cpu_seconds_│ │ container        "api"                                                                             │ │26  ▅▄▃▂▃▅▅▄▃▄▄▃▄▆▇▅
-   node_cpu_seconds_│ ╰──────────────────────────────────────────────────────────────────────────────────────── ▼ 14 more ─╯ │38  ▃▄▅▃▄█▅▅▄▃▄▆▅▄▃▂
-   node_cpu_seconds_│ ────────────────────────────────────────────────────────────────────────────────────────────────────── │52  ▆▄▅▄▄▄▂▅▅▅▆▅▇▇▅▆
-   node_cpu_seconds_│ enter/esc close   space pin  ↑ ↓ scroll labels                                                         │45  ▅▄▅▅▇▆▆▂▂▄▅▅▃▆▄▃
-   node_cpu_seconds_╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯22  ▆▆▅▇▅▅▆▆▃▃▃▃▂▄▅▆
-   node_cpu_seconds_total{cpu="2",mod… ctr       0.077     0.086   −0.0094    0.064    0.120    0.087    0.087    0.106    0.115  ▂▅▇▇▄▃▃▄▃▄▄▃▃▃▂▃
-   node_cpu_seconds_total{cpu="2",mod… ctr       0.244     0.254   −0.0098    0.202    0.378    0.281    0.279    0.339    0.356  ▆▅▅▄▄▄▅▅▄▄▂▆▄▇▄▃
-   node_cpu_seconds_total{cpu="3",mod… ctr       0.549     0.571    −0.022    0.345    0.692    0.522    0.526    0.621    0.667  ▆▃▃▂▃▅▆▆▄▄▅▄▅▄▅▅
-   node_cpu_seconds_total{cpu="3",mod… ctr       0.022     0.022   −0.0007    0.014    0.026    0.021    0.021    0.024    0.025  ▅▃▄▃▅▄▄▅▆▆▄▅▃▅▄▅
+   NAME ▲           ╭─ series details ───────────────────────────────────────────────────────────────────────────── 49 / 87 ─╮99  TREND
+   grpc_server_handl│ kube_pod_container_status_restarts_total{…}                                                            │00  ▃▅▁▃▁▃▁▁▅▃▃▁▁▁▃▁
+   http_inflight_req│ counter  unit: —                                                                                       │.0  ▃▂▅▆▅▅▂▅▄▅▇▆▆▅▇▇
+   http_request_dura│ # HELP Number of container restarts per container.                                                     │ms  ▅▄▅▆▃▅▄▄▅▄▅▄▅▅▆▅
+ ● http_requests_tot│                                                                                                        │37  ▆▇▅▅▂▃▅▇▇▄▅▂▆▇▅▄
+   http_requests_tot│ ╭─ window 5m · rate/s ───────────────────────────────────────────────────────────────────────────────╮ │.0  ▆▅▅▅▄▅▇▆▄▃▃▂▄▃▄▆
+   http_requests_tot│ │ current            1.00   min                  0   previous             0   max               1.00 │ │.0  ▅▄▅▅▅▇▅▄▂▂▃▃▃▅▃▆
+   http_requests_tot│ │ delta             +1.00   mean            0.0067   median               0   stddev           0.081 │ │00  ▇▅▄▄▃▅▅▅▄▅▅▅▄▅▇▆
+   http_requests_tot│ │ p90                   0   p95                  0   p99                  0   samples            300 │ │01  █▅▅█▁▅▅▆▅▆▆██▆▅▃
+   http_requests_tot│ │ last change this scrape   raw value            8                                                   │ │00  ▃▅▅▂▅▅▂▄▅▅▇▅▆▄▃▂
+   http_requests_tot│ ╰────────────────────────────────────────────────────────────────────────────────────────────────────╯ │00  ▅▆▅▅▃█▅▆▃▆▆█▅█▆▃
+   http_requests_tot│ ╭─ labels · 20 ──────────────────────────────────────────────────────────────────────────────────────╮ │00  ▅▅▃▃▆▁▃▃▆▅▁▃▅▅▃▃
+   kafka_consumer_la│ │ cluster          "prod-eu-1"                                                                       │ │90  ▅▅▄▄▄▅▅▄▇█▇▄▃▂▂▄
+   kafka_consumer_la│ │ region           "eu-central-1"                                                                    │ │55  ▅▃▂▂▃▅▆▅▅▃▆▅▄▅▄▅
+   kafka_consumer_la│ │ zone             "eu-central-1b"                                                                   │ │18  ▅▇▅▃▄▄▄▄▄▅▃▃▃▃▂▃
+▸  kube_pod_containe│ │ namespace        "payments"                                                                        │ │ 0  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃
+   node_cpu_seconds_│ │ pod              "payments-api-7c9f8d6b54-x2kqz"                                                   │ │10  ▄▃▅▃▃▄▅▃▆▆▅▆▅▅▂▃
+   node_cpu_seconds_│ │ container        "api"                                                                             │ │23  ▂▄▂▄▄▆▅▅▆▆▅▄▃▃▂▃
+   node_cpu_seconds_│ │ image            "registry.internal/payments/api:2.14.3"                                           │ │17  ▂▃▄▄▃▅▆▅▂▄▄▅▄▆▇▇
+   node_cpu_seconds_│ │ image_id         "sha256:4f1c9e0a7d2b"                                                             │ │56  ▆▃▂▅▃▅▄▂▅▆▆▅▃▅▄▄
+   node_cpu_seconds_│ │ container_id     "containerd://9b1e44c07a3f"                                                       │ │36  ▃▄▅▃▃▃▂▄▅▅▃▄▃▅▇▅
+   node_cpu_seconds_│ │ node             "ip-10-0-3-14.ec2.internal"                                                       │ │26  ▅▄▃▂▃▅▅▄▃▄▄▃▄▆▇▅
+   node_cpu_seconds_│ │ host_ip          "10.0.3.14"                                                                       │ │38  ▃▄▅▃▄█▅▅▄▃▄▆▅▄▃▂
+   node_cpu_seconds_│ │ pod_ip           "10.42.7.118"                                                                     │ │52  ▆▄▅▄▄▄▂▅▅▅▆▅▇▇▅▆
+   node_cpu_seconds_│ │ uid              "e3b0c442-98fc-4c14-9afb-f4c8996fb924"                                            │ │45  ▅▄▅▅▇▆▆▂▂▄▅▅▃▆▄▃
+   node_cpu_seconds_│ │ created_by_kind  "ReplicaSet"                                                                      │ │22  ▆▆▅▇▅▅▆▆▃▃▃▃▂▄▅▆
+   node_cpu_seconds_│ ╰───────────────────────────────────────────────────────────────────────────────────────── ▼ 6 more ─╯ │15  ▂▅▇▇▄▃▃▄▃▄▄▃▃▃▂▃
+   node_cpu_seconds_│ ────────────────────────────────────────────────────────────────────────────────────────────────────── │56  ▆▅▅▄▄▄▅▅▄▄▂▆▄▇▄▃
+   node_cpu_seconds_│ enter/esc close   space pin  ↑ ↓ scroll labels                                                         │67  ▆▃▃▂▃▅▆▆▄▄▅▄▅▄▅▅
+   node_cpu_seconds_╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯25  ▅▃▄▃▅▄▄▅▆▆▄▅▃▅▄▅
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── ▼ 24 more ─
 87/87 series · 6 pinned · sort name · rows 35–63 of 87                                                              window 5m · counters as rate/s
 ↑ ↓ move   PgUp/Dn page   +/- window   space pin   a all/pinned   / filter   s sort   r rate   enter details   p pause   ← → view   q quit
