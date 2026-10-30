@@ -44,7 +44,7 @@ func brailleEach(vals []float64, w, h int, lo, hi float64) []string {
 	for i := range times {
 		times[i] = start.Add(time.Duration(i) * time.Second)
 	}
-	return BrailleTimed(vals, times, w, h, lo, hi, start.Add(window), window)
+	return BrailleTimed(vals, times, w, h, lo, hi, start.Add(window), window, time.Second)
 }
 
 func TestBraille(t *testing.T) {
@@ -80,14 +80,14 @@ func TestTimeColumnAndBrailleTimed(t *testing.T) {
 		}
 	}
 	blank := rune(0x2800)
-	startup := []rune(BrailleTimed([]float64{5}, []time.Time{latest}, 5, 1, 0, 10, latest, window)[0])
+	startup := []rune(BrailleTimed([]float64{5}, []time.Time{latest}, 5, 1, 0, 10, latest, window, time.Second)[0])
 	for i, cell := range startup {
 		if i < 4 && cell != blank || i == 4 && cell == blank {
 			t.Errorf("startup plotted in cell %d: %q", i, string(startup))
 		}
 	}
 	gap := []rune(BrailleTimed([]float64{5, 5}, []time.Time{latest.Add(-4 * time.Minute), latest},
-		5, 1, 0, 10, latest, window)[0])
+		5, 1, 0, 10, latest, window, time.Second)[0])
 	for i, cell := range gap {
 		if (i == 1 || i == 4) && cell == blank || (i != 1 && i != 4) && cell != blank {
 			t.Errorf("gap plotted in cell %d: %q", i, string(gap))
@@ -145,5 +145,55 @@ func TestGlyphsWithInfinities(t *testing.T) {
 	}
 	if got := Bar(inf, 4); got != "████" {
 		t.Errorf("Bar(+Inf) = %q", got)
+	}
+}
+
+// dots counts the braille dots set in dot column x of a plot.
+func dots(rows []string, x int) int {
+	n := 0
+	for _, r := range rows {
+		c := int([]rune(r)[x>>1] - 0x2800)
+		for yy := range 4 {
+			if c&brailleBits[yy][x&1] != 0 {
+				n++
+			}
+		}
+	}
+	return n
+}
+
+// With more dot columns than samples, consecutive scrapes land in columns
+// with blanks between them; a jump must still be drawn as a vertical line.
+func TestBrailleTimedJoinsSparseScrapes(t *testing.T) {
+	latest := time.Date(2026, 10, 1, 12, 0, 10, 0, time.UTC)
+	window := 10 * time.Second
+	var vals []float64
+	var times []time.Time
+	for i := range 11 { // one scrape a second over 20 dot columns
+		v := 0.0
+		if i >= 5 {
+			v = 10
+		}
+		vals = append(vals, v)
+		times = append(times, latest.Add(-window+time.Duration(i)*time.Second))
+	}
+	got := BrailleTimed(vals, times, 10, 2, 0, 10, latest, window, time.Second)
+	x := TimeColumn(times[5], latest, window, 20)
+	if prev := TimeColumn(times[4], latest, window, 20); x-prev < 2 {
+		t.Fatalf("samples 4 and 5 share adjacent columns %d and %d; the test needs a blank between", prev, x)
+	}
+	if n := dots(got, x); n != 8 {
+		t.Errorf("the jump at column %d has %d of 8 dots: %q", x, n, got)
+	}
+	for c := range 20 { // the value holds between scrapes: no blank columns
+		if c != x && dots(got, c) != 1 {
+			t.Errorf("column %d has %d dots, want 1: %q", c, dots(got, c), got)
+		}
+	}
+	// A failed scrape leaves two intervals between samples: not joined.
+	vals, times = append(vals[:5:5], vals[6:]...), append(times[:5:5], times[6:]...)
+	got = BrailleTimed(vals, times, 10, 2, 0, 10, latest, window, time.Second)
+	if x = TimeColumn(times[5], latest, window, 20); dots(got, x) != 1 || dots(got, x-1) != 0 {
+		t.Errorf("a failed scrape was bridged at column %d: %q", x, got)
 	}
 }

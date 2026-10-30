@@ -83,8 +83,10 @@ func TimeColumn(at, latest time.Time, window time.Duration, columns int) int {
 }
 
 // BrailleTimed plots samples at their actual times within the selected window.
-// Empty dot columns stay blank, including gaps between successful scrapes.
-func BrailleTimed(vals []float64, times []time.Time, w, h int, lo, hi float64, latest time.Time, window time.Duration) []string {
+// A sample is joined to the previous one, as a step line holding the earlier
+// value, when their dot columns touch or they are consecutive scrapes at most
+// 1.5 intervals apart; longer gaps (failed scrapes, pauses) stay blank.
+func BrailleTimed(vals []float64, times []time.Time, w, h int, lo, hi float64, latest time.Time, window, interval time.Duration) []string {
 	if w <= 0 || h <= 0 {
 		return nil
 	}
@@ -94,6 +96,7 @@ func BrailleTimed(vals []float64, times []time.Time, w, h int, lo, hi float64, l
 	}
 	dx, dy := w*2, h*4
 	mins, maxs, lasts := make([]float64, dx), make([]float64, dx), make([]float64, dx)
+	firstAt, lastAt := make([]time.Time, dx), make([]time.Time, dx)
 	seen := make([]bool, dx)
 	for i := 0; i < min(len(vals), len(times)); i++ {
 		v := vals[i]
@@ -102,31 +105,33 @@ func BrailleTimed(vals []float64, times []time.Time, w, h int, lo, hi float64, l
 			continue
 		}
 		if !seen[x] {
-			mins[x], maxs[x], seen[x] = v, v, true
+			mins[x], maxs[x], seen[x], firstAt[x] = v, v, true, times[i]
 		} else {
 			mins[x], maxs[x] = math.Min(mins[x], v), math.Max(maxs[x], v)
 		}
-		lasts[x] = v
+		lasts[x], lastAt[x] = v, times[i]
 	}
 	span := hi - lo
 	if span == 0 || math.IsNaN(span) {
 		span = 1
 	}
 	y := func(v float64) int { return clampInt((1-(v-lo)/span)*float64(dy-1), 0, dy-1) }
-	py := -1
+	px, py := -1, -1
 	for x := range dx {
 		if !seen[x] {
-			py = -1
 			continue
 		}
 		y1, y2 := y(maxs[x]), y(mins[x])
-		if py >= 0 {
+		if px >= 0 && (x == px+1 || firstAt[x].Sub(lastAt[px]) <= interval*3/2) {
+			for xx := px + 1; xx < x; xx++ { // the value holds until the next scrape
+				grid[py>>2][xx>>1] |= brailleBits[py&3][xx&1]
+			}
 			y1, y2 = min(y1, py), max(y2, py)
 		}
 		for yy := y1; yy <= y2; yy++ {
 			grid[yy>>2][x>>1] |= brailleBits[yy&3][x&1]
 		}
-		py = y(lasts[x])
+		px, py = x, y(lasts[x])
 	}
 	return renderBraille(grid)
 }
