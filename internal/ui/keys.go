@@ -2,7 +2,9 @@ package ui
 
 import (
 	"slices"
+	"strings"
 	"time"
+	"unicode"
 
 	tea "charm.land/bubbletea/v2"
 
@@ -156,6 +158,22 @@ func (m *Model) filterKey(k tea.KeyPressMsg, s string) {
 		return
 	}
 	m.changeFilter(func() { m.editFilter(k, s) })
+	m.setCursor(m.rows(), 0)
+}
+
+// pasteFilter appends pasted text to the filter being typed, minus control
+// characters and the surrounding spaces a copied line tends to carry.
+func (m *Model) pasteFilter(text string) {
+	text = strings.TrimSpace(strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return -1
+		}
+		return r
+	}, text))
+	if !m.filtering || text == "" {
+		return
+	}
+	m.changeFilter(func() { m.filter += text })
 	m.setCursor(m.rows(), 0)
 }
 

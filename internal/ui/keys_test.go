@@ -61,6 +61,26 @@ func TestFilterTyping(t *testing.T) {
 	}
 }
 
+func TestFilterPaste(t *testing.T) {
+	m := newFixture(t, 3).model(146, 36)
+	m.Update(tea.PasteMsg{Content: "http"})
+	if m.filtering || m.filter != "" {
+		t.Fatalf("a paste outside the filter must be ignored: %q", m.filter)
+	}
+	m.cursor = 5
+	press(m, "/", "h")
+	m.Update(tea.PasteMsg{Content: " ttp_req\tuests\r\n"})
+	if !m.filtering || m.filter != "http_requests" {
+		t.Fatalf("filter = %q filtering=%v", m.filter, m.filtering)
+	}
+	if m.cursor != 0 {
+		t.Errorf("a paste must move the cursor to the first match: %d", m.cursor)
+	}
+	if s, _ := m.selected(m.rows()); s == nil || !strings.Contains(s.ID, "http_requests") {
+		t.Errorf("rows not filtered by the pasted text: %v", s)
+	}
+}
+
 func TestPopupPrecedence(t *testing.T) {
 	f := newFixture(t, 3)
 	m := f.model(146, 36)
