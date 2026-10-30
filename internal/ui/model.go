@@ -60,11 +60,6 @@ type Options struct {
 	Store  *store.Store
 }
 
-type clickInfo struct {
-	idx int
-	at  time.Time
-}
-
 type statsCache struct {
 	seq    uint64
 	window time.Duration
@@ -124,7 +119,6 @@ type Model struct {
 	errOpen        bool
 	inFlight       bool
 	gen            uint64 // scrape loop generation, bumped on pause and resume
-	lastClick      clickInfo
 	cache          statsCache
 	rowCache       rowsCache
 	heat           heatCache
@@ -186,10 +180,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.nextTick()
 	case tea.KeyPressMsg:
 		return m.handleKey(msg)
-	case tea.MouseClickMsg:
-		return m.handleClick(msg)
-	case tea.MouseWheelMsg:
-		return m.handleWheel(msg)
 	}
 	return m, nil
 }
@@ -197,7 +187,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Model) View() tea.View {
 	v := tea.NewView(m.render())
 	v.AltScreen = true
-	v.MouseMode = tea.MouseModeCellMotion
 	v.WindowTitle = "promtop " + m.cfg.Target.URL
 	return v
 }
