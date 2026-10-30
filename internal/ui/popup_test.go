@@ -6,8 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	tea "charm.land/bubbletea/v2"
-
 	"github.com/krisiasty/promtop/internal/format"
 	"github.com/krisiasty/promtop/internal/store"
 )
@@ -142,7 +140,7 @@ func TestWrapText(t *testing.T) {
 	}
 }
 
-// A popup that is no longer drawn must not keep capturing keys and clicks.
+// A popup that is no longer drawn must not keep capturing keys.
 func TestHiddenPopupsReleaseInput(t *testing.T) {
 	f := newFixture(t, 30)
 	f.fail(3)
@@ -156,14 +154,6 @@ func TestHiddenPopupsReleaseInput(t *testing.T) {
 	press(m, "down")
 	if m.cursor != 2 {
 		t.Errorf("↓ after recovery must move the cursor: %d", m.cursor)
-	}
-	click(m, 10, 3+1+4)
-	if m.cursor != 4 {
-		t.Errorf("row click after recovery → cursor %d", m.cursor)
-	}
-	wheel(m, true)
-	if m.cursor != 5 {
-		t.Errorf("wheel after recovery → cursor %d", m.cursor)
 	}
 	if !isQuit(press(m, "q")) {
 		t.Error("q after recovery must quit, not close an invisible popup")
@@ -278,10 +268,6 @@ func TestDetailsPopupLongLabels(t *testing.T) {
 	press(m, "home", "left")
 	if m.labHOff != 0 {
 		t.Errorf("home/← must stop at the start: %d", m.labHOff)
-	}
-	m.Update(tea.MouseWheelMsg{Button: tea.MouseWheelRight})
-	if m.labHOff != hStep {
-		t.Errorf("wheel right → %d", m.labHOff)
 	}
 	assertFrame(t, m.render(), 146, 36)
 

@@ -142,10 +142,6 @@ func TestSeriesUsesWideTerminal(t *testing.T) {
 	if !strings.Contains(string(row), `endpoint="GET /metrics/with/a/long/path"`) || len(row) < 3 || row[len(row)-3] == ' ' {
 		t.Errorf("series label or trend clipped: %q", string(row))
 	}
-	click(m, familyPaneW+5, m.bodyTop()+2)
-	if m.famIdx != 1 {
-		t.Errorf("click inside expanded family pane selected row %d, want 1", m.famIdx)
-	}
 	m = f.model(800, 36)
 	m.view = ViewSeries
 	assertFrame(t, m.render(), 800, 36)

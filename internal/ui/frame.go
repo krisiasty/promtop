@@ -73,14 +73,6 @@ func (m *Model) render() string {
 	return strings.Join(out, "\n")
 }
 
-// bodyTop is the screen row where the body starts.
-func (m *Model) bodyTop() int {
-	if m.banner(m.w) != nil {
-		return 5
-	}
-	return 3
-}
-
 func (m *Model) header(w int) string {
 	status, st, info := m.headerStatus()
 	url := m.cfg.Target.URL
@@ -163,19 +155,6 @@ func (m *Model) tabs(w int) string {
 		}
 	}
 	return r.String(w)
-}
-
-// tabAt maps a click on the tab row to a view.
-func (m *Model) tabAt(x int) (View, bool) {
-	pos := 0
-	for i, name := range viewNames {
-		wd := format.Width(name) + 4 // " k name "
-		if x >= pos && x < pos+wd {
-			return View(i), true
-		}
-		pos += wd + 1
-	}
-	return 0, false
 }
 
 // separator is a full-width rule, optionally with "▲/▼ N more" at the right.

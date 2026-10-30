@@ -56,14 +56,11 @@ func TestRawScrollingAfterNarrowResize(t *testing.T) {
 				press(m, "down")
 				m.Update(tea.WindowSizeMsg{Width: width, Height: 36})
 				press(m, "down", "up", "pgdown", "pgup", "g", "G")
-				wheel(m, true)
-				wheel(m, false)
 				if m.rawOff != 0 {
 					t.Errorf("scroll offset in a too-small terminal = %d, want 0", m.rawOff)
 				}
 				m.Update(tea.WindowSizeMsg{Width: 80, Height: 36})
-				press(m, "down")
-				wheel(m, true)
+				press(m, "down", "down", "down", "down")
 				if m.rawOff != 4 {
 					t.Errorf("scroll offset after restoring width = %d, want 4", m.rawOff)
 				}

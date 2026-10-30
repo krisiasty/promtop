@@ -92,9 +92,6 @@ cannot be forwarded to another endpoint.
 | `p` | pause / resume |
 | `q` | quit |
 
-The mouse works too: click tabs and rows, click the left margin to pin,
-double-click a row for details, scroll with the wheel.
-
 History lists every available value in the selected window, newest first. Scroll
 the left list to see older values; its stats and distribution use the same
 window's values, regardless of scroll position. The scrape interval controls
