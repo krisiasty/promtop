@@ -112,6 +112,7 @@ type Model struct {
 	rawOff         int
 	rawWrap        bool
 	labOff         int
+	labHOff        int // details popup: cells the label values are scrolled left
 	onlyPinned     bool
 	showRate       bool
 	paused         bool

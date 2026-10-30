@@ -40,7 +40,7 @@ func (m *Model) handleClick(msg tea.MouseClickMsg) (tea.Model, tea.Cmd) {
 		m.setCursor(rows, idx)
 		m.lastClick = clickInfo{idx, now}
 		if double {
-			m.detailOpen, m.labOff = true, 0
+			m.detailOpen, m.labOff, m.labHOff = true, 0, 0
 		}
 	case ViewSeries:
 		wide := m.w >= 146
@@ -64,14 +64,20 @@ func (m *Model) handleClick(msg tea.MouseClickMsg) (tea.Model, tea.Cmd) {
 
 func (m *Model) handleWheel(msg tea.MouseWheelMsg) (tea.Model, tea.Cmd) {
 	m.dropHiddenPopups()
-	d := 0
+	d, hd := 0, 0
 	switch msg.Mouse().Button {
 	case tea.MouseWheelUp:
 		d = -1
 	case tea.MouseWheelDown:
 		d = 1
+	case tea.MouseWheelLeft:
+		hd = -hStep
+	case tea.MouseWheelRight:
+		hd = hStep
 	}
 	switch {
+	case hd != 0 && m.detailOpen:
+		m.labHOff = clamp(m.labHOff+hd, 0, m.labHMax())
 	case d == 0 || m.errOpen:
 	case m.detailOpen:
 		m.labOff = clamp(m.labOff+d, 0, m.labMax())

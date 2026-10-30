@@ -12,7 +12,10 @@ import (
 	"github.com/krisiasty/promtop/internal/store"
 )
 
-const maxLabelRows = 6
+const (
+	maxLabelRows = 6
+	hStep        = 8 // cells ← → scroll the details popup's label values
+)
 
 // popup returns the open popup's lines; render centres it over the body.
 func (m *Model) popup(lay layout, rows []*store.Series) []string {
@@ -42,11 +45,40 @@ func statCols(w int) int {
 	return 2
 }
 
-// labVisible is how many label rows the details popup shows (1..6).
-func (m *Model) labVisible(bodyH, nLabels int) int {
+// labelFit is how the details popup lays out a series' labels: two per row
+// when every label fits whole in half the box, else one per row with the
+// values scrolling sideways (hMax cells) past what the terminal can show.
+type labelFit struct {
+	pw         int // popup width
+	cols, keyW int // label columns and key cells per column
+	rows, hMax int
+}
+
+// fitLabels widens the popup beyond its usual 106 cells, up to the terminal
+// width w, so the longest key="value" pair fits on one line.
+func fitLabels(w int, ls []expo.Label) labelFit {
+	maxK, maxV := 0, 0
+	for _, l := range ls {
+		maxK = max(maxK, format.Width(oneLine(l.Name)))
+		maxV = max(maxV, format.Width(oneLine(l.Value))+2)
+	}
+	f := labelFit{pw: min(w-4, max(106, maxK+2+maxV+8)), cols: 1}
+	in := f.pw - 8 // inside the labels box
+	if half := (in - 3) / 2; maxK+2+maxV <= half {
+		f.cols, f.keyW = 2, maxK+2
+	} else {
+		f.keyW = max(1, min(maxK+2, in*2/5))
+		f.hMax = max(0, maxV-(in-f.keyW))
+	}
+	f.rows = (len(ls) + f.cols - 1) / f.cols
+	return f
+}
+
+// labVisible is how many of rows label rows the details popup shows (1..6).
+func (m *Model) labVisible(bodyH, rows int) int {
 	statRows := (14 + statCols(m.w) - 1) / statCols(m.w)
 	lv := clamp(bodyH-(12+statRows), 1, maxLabelRows)
-	return min(lv, max(1, (nLabels+1)/2))
+	return min(lv, max(1, rows))
 }
 
 func (m *Model) labMax() int {
@@ -60,12 +92,21 @@ func (m *Model) labMax() int {
 		}
 		return max(0, len(s.Hist.LE)-m.bucketVisible(m.bodyHeight(), s))
 	}
-	return max(0, (len(s.Labels)+1)/2-m.labVisible(m.bodyHeight(), len(s.Labels)))
+	rows := fitLabels(m.w, s.Labels).rows
+	return max(0, rows-m.labVisible(m.bodyHeight(), rows))
+}
+
+// labHMax is how far ← → can scroll the selected series' label values.
+func (m *Model) labHMax() int {
+	if s, _ := m.selected(m.rows()); s != nil {
+		return fitLabels(m.w, s.Labels).hMax
+	}
+	return 0
 }
 
 // histLabelRows is how many label rows a histogram's popup shows (1..3); the
 // bucket list, not the labels, scrolls.
-func histLabelRows(s *store.Series) int { return clamp((len(s.Labels)+1)/2, 1, 3) }
+func histLabelRows(rows int) int { return clamp(rows, 1, 3) }
 
 // bucketRoom reports whether a histogram's popup fits at least one bucket
 // row; on short terminals the buckets box is left out.
@@ -80,12 +121,13 @@ func (m *Model) bucketVisible(bodyH int, s *store.Series) int {
 // parts (and the buckets box's borders and header) are placed.
 func (m *Model) bucketSpace(bodyH int, s *store.Series) int {
 	statRows := (14 + statCols(m.w) - 1) / statCols(m.w)
-	return bodyH - (15 + statRows + histLabelRows(s))
+	return bodyH - (15 + statRows + histLabelRows(fitLabels(m.w, s.Labels).rows))
 }
 
 func (m *Model) detailsPopup(lay layout, s *store.Series, idx, n int) []string {
 	th := &m.th
-	pw := min(106, lay.w-4)
+	lf := fitLabels(lay.w, s.Labels)
+	pw := lf.pw
 	inner := pw - 4
 	x, life := m.statsLife(s)
 	u := m.unit(s)
@@ -129,22 +171,33 @@ func (m *Model) detailsPopup(lay layout, s *store.Series, idx, n int) []string {
 	}, statCols(lay.w), sb.inner(), 11, th.dim, th.hi)
 	lines = append(lines, sb.render()...)
 
-	lv := m.labVisible(lay.h, len(s.Labels))
-	rowsN := (len(s.Labels) + 1) / 2
-	lo := clamp(m.labOff, 0, max(0, rowsN-lv))
+	lv := m.labVisible(lay.h, lf.rows)
+	lo := clamp(m.labOff, 0, max(0, lf.rows-lv))
 	if s.Hist != nil {
-		lv, lo = histLabelRows(s), 0
+		lv, lo = histLabelRows(lf.rows), 0
 	}
-	lb := box{w: inner, pad: 1, title: "labels · " + strconv.Itoa(len(s.Labels)), titleStyle: th.dim, border: th.line,
+	ho := clamp(m.labHOff, 0, lf.hMax)
+	lt := "labels · " + strconv.Itoa(len(s.Labels))
+	switch { // which way the values can still scroll
+	case lf.hMax == 0:
+	case ho == 0:
+		lt += " · ▶"
+	case ho == lf.hMax:
+		lt += " · ◀"
+	default:
+		lt += " · ◀ ▶"
+	}
+	lb := box{w: inner, pad: 1, title: lt, titleStyle: th.dim, border: th.line,
 		topRightStyle: th.cyan, markStyle: th.cyan}
 	if len(s.Labels) == 0 {
 		lb.lines = []string{(&row{}).left("no labels", lb.inner(), th.dim).String(lb.inner())}
 	} else {
-		lb.lines = labelGrid(s.Labels[lo*2:min(len(s.Labels), (lo+lv)*2)], lb.inner(), th)
-		if above := lo * 2; above > 0 {
-			lb.topRight = "▲ " + strconv.Itoa(above) + " more"
+		first, last := lo*lf.cols, min(len(s.Labels), (lo+lv)*lf.cols)
+		lb.lines = labelGrid(s.Labels[first:last], lf, ho, lb.inner(), th)
+		if first > 0 {
+			lb.topRight = "▲ " + strconv.Itoa(first) + " more"
 		}
-		if below := len(s.Labels) - (lo+lv)*2; below > 0 {
+		if below := len(s.Labels) - last; below > 0 {
 			lb.bottomRight = "▼ " + strconv.Itoa(below) + " more"
 		}
 	}
@@ -158,7 +211,7 @@ func (m *Model) detailsPopup(lay layout, s *store.Series, idx, n int) []string {
 		if len(s.Hist.LE) > bv {
 			scroll = " scroll buckets"
 		}
-	case rowsN > lv:
+	case lf.rows > lv:
 		scroll = " scroll labels"
 	}
 
@@ -166,6 +219,9 @@ func (m *Model) detailsPopup(lay layout, s *store.Series, idx, n int) []string {
 	fr.add("enter/esc", th.cyan).add(" close", th.dim).space(3).add("space", th.cyan).add(" pin", th.dim)
 	if scroll != "" {
 		fr.space(2).add("↑ ↓", th.cyan).add(scroll, th.dim)
+	}
+	if lf.hMax > 0 {
+		fr.space(2).add("← →", th.cyan).add(" scroll values", th.dim)
 	}
 	lines = append(lines, th.line.Render(strings.Repeat("─", inner)), fr.String(inner))
 	return box{w: pw, pad: 1, title: "series details", titleStyle: th.cyan,
@@ -241,14 +297,19 @@ func (m *Model) bucketBox(s *store.Series, width, vis int) box {
 	return b
 }
 
-// labelGrid shows labels two per row: key (21 cells, amber) and "value".
-func labelGrid(ls []expo.Label, width int, th *theme) []string {
+// labelGrid shows labels lf.cols per row: key (lf.keyW cells, amber) and
+// "value". A single column's values are scrolled hOff cells to the left, each
+// only as far as its own tail needs.
+func labelGrid(ls []expo.Label, lf labelFit, hOff, width int, th *theme) []string {
 	const gap = 3
-	cw := (width - gap) / 2
+	cw := width
+	if lf.cols == 2 {
+		cw = (width - gap) / 2
+	}
 	var out []string
-	for i := 0; i < len(ls); i += 2 {
+	for i := 0; i < len(ls); i += lf.cols {
 		r := &row{}
-		for c := 0; c < 2; c++ {
+		for c := 0; c < lf.cols; c++ {
 			w := cw
 			if c == 1 {
 				r.space(gap)
@@ -259,11 +320,22 @@ func labelGrid(ls []expo.Label, width int, th *theme) []string {
 				continue
 			}
 			l := ls[i+c]
-			r.left(l.Name, 21, th.amber).left("\""+l.Value+"\"", w-21, th.fg)
+			v := oneLine("\"" + l.Value + "\"")
+			vw := w - lf.keyW
+			r.left(l.Name, lf.keyW, th.amber).left(slide(v, min(hOff, format.Width(v)-vw), vw), vw, th.fg)
 		}
 		out = append(out, r.String(width))
 	}
 	return out
+}
+
+// slide shows w cells of s starting off cells in, with "…" marking text cut
+// on either side.
+func slide(s string, off, w int) string {
+	if off > 0 {
+		s = "…" + s[len(format.Cut(s, off+1)):]
+	}
+	return format.Truncate(s, w)
 }
 
 func unitName(u format.Unit) string {
