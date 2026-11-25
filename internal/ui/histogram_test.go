@@ -370,7 +370,7 @@ func TestPopupBucketsArePerBucket(t *testing.T) {
 	vis := 4
 	rows := func() map[string]string {
 		out := map[string]string{}
-		for _, ln := range strings.Split(plain(strings.Join(m.bucketBox(hist, 80, vis).render(), "\n")), "\n") {
+		for ln := range strings.SplitSeq(plain(strings.Join(m.bucketBox(hist, 80, vis).render(), "\n")), "\n") {
 			if f := strings.Fields(strings.Trim(ln, "│ ")); len(f) > 0 {
 				out[f[0]] = ln
 			}
