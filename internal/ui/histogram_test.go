@@ -9,6 +9,7 @@ import (
 
 	"github.com/krisiasty/promtop/internal/format"
 	"github.com/krisiasty/promtop/internal/stats"
+	"github.com/krisiasty/promtop/internal/store"
 )
 
 // ghwFixture holds two identical scrapes of a real exporter's payload, so the
@@ -201,8 +202,8 @@ func TestHistogramPopupListsBuckets(t *testing.T) {
 		t.Errorf("≤1.00ms bucket row = %q", le1)
 	}
 	press(m, "down", "down", "down", "down", "down", "down", "down", "down", "down", "down")
-	if !strings.Contains(plain(m.render()), "│ +Inf ") {
-		t.Error("scrolling the bucket list must reach +Inf")
+	if !strings.Contains(plain(m.render()), "│ >") {
+		t.Error("scrolling the bucket list must reach the +Inf bucket, labelled >last bound")
 	}
 	if got := format.Num(1.024e-6, format.Seconds); got != "1.02µs" {
 		t.Errorf("µs formatting = %q", got)
@@ -346,4 +347,50 @@ func TestGaugeHistogramCurrentDistributionAcrossViews(t *testing.T) {
 func heatLife(m *Model) bool {
 	_, life := m.heatScope()
 	return life
+}
+
+// The popup lists what each bucket alone observed in the window, not the
+// cumulative le counts: the reported case had 2 observations, one in each of
+// (0.15ms, 0.20ms] and (0.20ms, 0.30ms].
+func TestPopupBucketsArePerBucket(t *testing.T) {
+	f := newFixture(t, 0)
+	text := func(b1, b2, b3, sum float64) string {
+		return fmt.Sprintf("# TYPE h_seconds histogram\nh_seconds_bucket{le=\"0.00015\"} 0\nh_seconds_bucket{le=\"0.0002\"} %g\n"+
+			"h_seconds_bucket{le=\"0.0003\"} %g\nh_seconds_bucket{le=\"+Inf\"} %g\nh_seconds_sum %g\nh_seconds_count %g\n", b1, b2, b3, sum, b3)
+	}
+	f.apply(text(2, 2, 2, 0.000372))
+	f.apply(text(3, 4, 4, 0.000792))
+	m := f.model(146, 36)
+	var hist *store.Series
+	for _, s := range m.st.Series() {
+		if s.Hist != nil {
+			hist = s
+		}
+	}
+	rows := func() map[string]string {
+		out := map[string]string{}
+		for _, ln := range strings.Split(plain(strings.Join(m.bucketBox(hist, 80, 4).render(), "\n")), "\n") {
+			if f := strings.Fields(strings.Trim(ln, "│ ")); len(f) > 0 {
+				out[f[0]] = ln
+			}
+		}
+		return out
+	}
+	r := rows()
+	if !strings.Contains(r["range"], "count") {
+		t.Errorf("header row: %q", r["range"])
+	}
+	for label, want := range map[string][]string{
+		"≤0.15ms": {" 0 ", "0.0%"}, "0.15–0.20ms": {" 1 ", "50.0%", "1.00"}, "0.20–0.30ms": {" 1 ", "50.0%", "1.00"}, ">0.30ms": {" 0 ", "0.0%"},
+	} {
+		for _, w := range want {
+			if !strings.Contains(r[label], w) {
+				t.Errorf("%s row lacks %q: %q", label, w, r[label])
+			}
+		}
+	}
+	m.labOff = 2 // scrolled: the first visible row still subtracts the hidden one above
+	if r := rows(); !strings.Contains(r["0.20–0.30ms"], " 1 ") {
+		t.Errorf("scrolled 0.20–0.30ms row: %q", r["0.20–0.30ms"])
+	}
 }

@@ -95,6 +95,15 @@ func SI(v float64) string {
 	return fixed(v, 4)
 }
 
+// Count formats a number of observations: whole counts below 10k without
+// decimals ("2", "765"), anything else like SI ("12.3k", "1.50").
+func Count(v float64) string {
+	if v != 0 && v == math.Trunc(v) && math.Abs(v) < 1e4 { // SI renders 0 (and −0) as "0"
+		return fixed(v, 0)
+	}
+	return SI(v)
+}
+
 // Signed formats a delta with an explicit sign: "+7.00", "−355.2Ki", "0".
 // A delta too small to show at the unit's precision renders as "0".
 func Signed(d float64, u Unit) string {

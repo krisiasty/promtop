@@ -307,6 +307,38 @@ func perBucket(cum []float64) []float64 {
 	return out
 }
 
+// rangeW is the label column wide enough for a bucket range ("75.00µs–0.10ms").
+const rangeW = 14
+
+// bucketRange labels bucket k by the observations it alone holds: "≤hi" for
+// the first (its lower bound is unknown), "lo–hi" in between (a unit both
+// ends share is written once), ">lo" for +Inf, and "all" for a lone +Inf.
+func bucketRange(le []float64, k int, u format.Unit) string {
+	hi := le[k]
+	switch {
+	case math.IsInf(hi, 1) && k == 0:
+		return "all"
+	case math.IsInf(hi, 1):
+		return ">" + format.Num(le[k-1], u)
+	case k == 0:
+		return "≤" + format.Num(hi, u)
+	}
+	lo, h := format.Num(le[k-1], u), format.Num(hi, u)
+	if sl, sh := unitSuffix(lo), unitSuffix(h); sl != "" && sl == sh {
+		lo = strings.TrimSuffix(lo, sl)
+	}
+	return lo + "–" + h
+}
+
+// unitSuffix is the trailing run of s that is neither digits nor a point.
+func unitSuffix(s string) string {
+	i := len(s)
+	for i > 0 && s[i-1] != '.' && (s[i-1] < '0' || s[i-1] > '9') {
+		i--
+	}
+	return s[i:]
+}
+
 func bucketLabel(le float64, u format.Unit) string {
 	if math.IsInf(le, 1) {
 		return "+Inf"

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 	"time"
@@ -182,10 +183,17 @@ func TestHistogramRatesSkipIncompleteIntervals(t *testing.T) {
 		}
 	}
 	box := plain(strings.Join(m.bucketBox(hist, 60, 4).render(), "\n"))
+	seen := false
 	for _, line := range strings.Split(box, "\n") {
-		if strings.Contains(line, "+Inf") && !strings.Contains(line, "1.00") {
-			t.Errorf("popup bucket rate should span only the complete intervals: %q", line)
+		if strings.Contains(line, "│ ≤1.00 ") { // every observation is in this bucket
+			seen = true
+			if f := strings.Fields(strings.Trim(line, "│ ")); len(f) < 4 || f[3] != "1.00" { // range count share rate bar
+				t.Errorf("popup bucket rate should span only the complete intervals: %q", line)
+			}
 		}
+	}
+	if !seen {
+		t.Errorf("popup lacks the ≤1.00 bucket row:\n%s", box)
 	}
 }
 
@@ -366,5 +374,29 @@ rpc_seconds_count 1
 	press(m, "esc", "/", "z", "enter")
 	if lines = plainLines(m.render()); lineWith(lines, "No histograms match. Esc clears the filter.") == "" {
 		t.Errorf("empty filter result:\n%s", strings.Join(lines, "\n"))
+	}
+}
+
+func TestBucketRange(t *testing.T) {
+	inf := math.Inf(1)
+	for _, c := range []struct {
+		le   []float64
+		k    int
+		u    format.Unit
+		want string
+	}{
+		{[]float64{0.00015, 0.0002, 0.0003, inf}, 0, format.Seconds, "≤0.15ms"},
+		{[]float64{0.00015, 0.0002, 0.0003, inf}, 1, format.Seconds, "0.15–0.20ms"},
+		{[]float64{0.00015, 0.0002, 0.0003, inf}, 3, format.Seconds, ">0.30ms"},
+		{[]float64{7.5e-5, 1e-4}, 1, format.Seconds, "75.00µs–0.10ms"},
+		{[]float64{0, 0.005}, 1, format.Seconds, "0–5.00ms"},
+		{[]float64{512 * 1024, 1 << 30}, 1, format.Bytes, "512.0Ki–1.00Gi"},
+		{[]float64{2500, 5000, inf}, 1, format.None, "2500–5000"},
+		{[]float64{2500, 5000, inf}, 2, format.None, ">5000"},
+		{[]float64{inf}, 0, format.None, "all"},
+	} {
+		if got := bucketRange(c.le, c.k, c.u); got != c.want {
+			t.Errorf("bucketRange(%v, %d) = %q, want %q", c.le, c.k, got, c.want)
+		}
 	}
 }

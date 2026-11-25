@@ -160,3 +160,11 @@ func TestTimestamps(t *testing.T) {
 		t.Error("IsEpoch")
 	}
 }
+
+func TestCount(t *testing.T) {
+	for v, want := range map[float64]string{0: "0", 2: "2", 765: "765", 9999: "9999", 12345: "12.3k", 1.5: "1.50", math.NaN(): "—"} {
+		if got := Count(v); got != want {
+			t.Errorf("Count(%v) = %q, want %q", v, got, want)
+		}
+	}
+}
