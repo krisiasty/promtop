@@ -15,8 +15,13 @@ import (
 	"github.com/krisiasty/promtop/internal/store"
 )
 
-// heatPanelMin is the narrowest right-hand panel worth drawing.
-const heatPanelMin = 40
+// heatPanelMin is the narrowest right-hand panel worth drawing; heatPanelMax
+// fits its widest row (range, 20-cell bar, share, count) so extra terminal
+// width goes to the grid's time columns instead.
+const (
+	heatPanelMin = 40
+	heatPanelMax = 52
+)
 
 var heatGlyphs = []string{"░", "▒", "▓", "█"}
 
@@ -59,9 +64,11 @@ func (m *Model) viewHeatmap(lay layout) body {
 	d := m.heatData(src, idx, from, to)
 	pw := lay.w - 102
 	wide := pw >= heatPanelMin
-	ncols, lw := 89, 99
-	if !wide {
-		ncols, lw = lay.w-12, lay.w
+	lw, ncols := lay.w, lay.w-(rangeW+3)
+	if wide {
+		pw = min(pw, heatPanelMax)
+		lw = lay.w - pw - 3
+		ncols = lw - (rangeW + 1)
 	}
 	cols := heatColumns(d, m.st.Times(from, to), m.st.LastTime(), m.window, ncols)
 	// Reserve the title, blank, axis (2), blank, three quantile rows and the
@@ -83,11 +90,11 @@ func (m *Model) viewHeatmap(lay layout) body {
 		add(kind+" · "+strconv.Itoa(len(d.LE))+" buckets · columns normalised", th.dim)
 	left := []string{""}
 	if hidden > 0 {
-		left = append(left, (&row{}).space(10).add("▲ "+strconv.Itoa(hidden)+" more buckets", th.dim).String(lw))
+		left = append(left, (&row{}).space(rangeW+1).add("▲ "+strconv.Itoa(hidden)+" more buckets", th.dim).String(lw))
 	}
 	for k := nb - 1; k >= 0; k-- {
 		r := &row{}
-		r.right(bucketLabel(d.LE[k], src.Unit), 9, th.dim).space(1)
+		r.right(bucketRange(d.LE, k, src.Unit), rangeW, th.dim).space(1)
 		for _, c := range cols {
 			mx := 0.0
 			for _, v := range c {
@@ -108,7 +115,7 @@ func (m *Model) viewHeatmap(lay layout) body {
 		left = append(left, r.String(lw))
 	}
 	ticks, labels := format.Axis(ncols, m.window)
-	left = append(left, (&row{}).space(10).add(ticks, th.axis).String(lw), (&row{}).space(10).add(labels, th.dim).String(lw), "")
+	left = append(left, (&row{}).space(rangeW+1).add(ticks, th.axis).String(lw), (&row{}).space(rangeW+1).add(labels, th.dim).String(lw), "")
 
 	qs := []struct {
 		k  string
@@ -128,7 +135,7 @@ func (m *Model) viewHeatmap(lay layout) body {
 		}
 	}
 	for i, q := range qs {
-		left = append(left, (&row{}).right(q.k, 9, th.dim).space(1).add(format.Spark(qv[i], ncols, 0, qmx), q.st).String(lw))
+		left = append(left, (&row{}).right(q.k, rangeW, th.dim).space(1).add(format.Spark(qv[i], ncols, 0, qmx), q.st).String(lw))
 	}
 
 	tb := heatBuckets(d)
@@ -163,18 +170,18 @@ func (m *Model) viewHeatmap(lay layout) body {
 		summary[4] = struct {
 			k, v string
 			st   lipgloss.Style
-		}{"observed", format.SI(count), th.dim}
+		}{"observed", format.Count(count), th.dim}
 	}
 	if d.Gauge {
 		scope = "current distribution"
-		summary[4].k, summary[4].v = "observed", format.SI(count)
+		summary[4].k, summary[4].v = "observed", format.Count(count)
 	}
 
 	var right []string
 	if wide {
 		bb := box{w: pw, pad: 1, title: "buckets · " + scope, titleStyle: th.dim, border: th.line}
 		in := bb.inner()
-		barW := min(20, in-8-7-5) // keep the count column at 5 cells even when the panel is narrow
+		barW := min(20, in-rangeW-7-6) // keep the count column at 6 cells (5 + gap) even when the panel is narrow
 		for k, c := range tb[:nb] {
 			bar, pct := "", "0.0%"
 			if c > 0 && most > 0 {
@@ -183,8 +190,8 @@ func (m *Model) viewHeatmap(lay layout) body {
 			if tot > 0 {
 				pct = strconv.FormatFloat(c/tot*100, 'f', 1, 64) + "%"
 			}
-			bb.lines = append(bb.lines, (&row{}).left(bucketLabel(d.LE[k], src.Unit), 8, th.prev).left(bar, barW, th.cyan).
-				right(pct, 7, th.stat).right(format.SI(c), in-8-barW-7, th.dim).String(in))
+			bb.lines = append(bb.lines, (&row{}).left(bucketRange(d.LE, k, src.Unit), rangeW, th.prev).left(bar, barW, th.cyan).
+				right(pct, 7, th.stat).right(format.Count(c), in-rangeW-barW-7, th.dim).String(in))
 		}
 		if hidden > 0 { // the panel lists buckets upwards: the dropped ones are last
 			bb.lines = append(bb.lines, (&row{}).add("▼ "+strconv.Itoa(hidden)+" more buckets", th.dim).String(in))
@@ -196,14 +203,15 @@ func (m *Model) viewHeatmap(lay layout) body {
 		right = append(bb.render(), qb.render()...)
 	} else {
 		sr := &row{}
-		sr.space(10)
 		for i, s := range summary {
 			if i > 0 {
 				sr.space(3)
 			}
 			sr.add(s.k+" ", s.st).add(s.v, th.hi)
 		}
-		left = append(left, "", sr.String(lw))
+		// Line up with the grid when the summary fits, else give up indent first.
+		indent := clamp(lw-sr.width(), 0, rangeW+1)
+		left = append(left, "", strings.Repeat(" ", indent)+sr.String(lw-indent))
 	}
 
 	b.lines = []string{t.String(lay.w)}
@@ -337,13 +345,6 @@ func unitSuffix(s string) string {
 		i--
 	}
 	return s[i:]
-}
-
-func bucketLabel(le float64, u format.Unit) string {
-	if math.IsInf(le, 1) {
-		return "+Inf"
-	}
-	return "≤" + format.Num(le, u)
 }
 
 // heatColumns folds each scrape's bucket increments into its time column.
