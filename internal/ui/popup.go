@@ -267,7 +267,7 @@ func (m *Model) bucketBox(s *store.Series, width, vis int) box {
 		cnt, share, rate, bar := math.NaN(), "—", math.NaN(), ""
 		if own != nil {
 			cnt = own[k]
-			if total > 0 {
+			if total > 0 && !math.IsNaN(cnt) {
 				share = strconv.FormatFloat(cnt/total*100, 'f', 1, 64) + "%"
 			}
 			if cnt > 0 && most > 0 {

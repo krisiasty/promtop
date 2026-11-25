@@ -304,38 +304,57 @@ func heatBuckets(d store.HeatData) []float64 {
 	return tb
 }
 
-// perBucket turns cumulative bucket counts into per-bucket counts.
+// perBucket turns cumulative bucket counts into per-bucket counts. A NaN
+// bucket stays NaN without hiding the buckets above it: they subtract the
+// highest known count below them.
 func perBucket(cum []float64) []float64 {
 	out := make([]float64, len(cum))
 	below := 0.0
 	for k, c := range cum {
+		if math.IsNaN(c) {
+			out[k] = c
+			continue
+		}
 		out[k] = math.Max(0, c-below)
 		below = math.Max(below, c)
 	}
 	return out
 }
 
-// rangeW is the label column wide enough for a bucket range ("75.00µs–0.10ms").
+// rangeW is the label column wide enough for a bucket range ("750µs–1.25ms").
 const rangeW = 14
 
 // bucketRange labels bucket k by the observations it alone holds: "≤hi" for
 // the first (its lower bound is unknown), "lo–hi" in between (a unit both
 // ends share is written once), ">lo" for +Inf, and "all" for a lone +Inf.
+// Bounds are exact configured values, so they drop trailing zeros.
 func bucketRange(le []float64, k int, u format.Unit) string {
 	hi := le[k]
 	switch {
 	case math.IsInf(hi, 1) && k == 0:
 		return "all"
 	case math.IsInf(hi, 1):
-		return ">" + format.Num(le[k-1], u)
+		return ">" + boundLabel(le[k-1], u)
 	case k == 0:
-		return "≤" + format.Num(hi, u)
+		return "≤" + boundLabel(hi, u)
 	}
-	lo, h := format.Num(le[k-1], u), format.Num(hi, u)
+	lo, h := boundLabel(le[k-1], u), boundLabel(hi, u)
 	if sl, sh := unitSuffix(lo), unitSuffix(h); sl != "" && sl == sh {
 		lo = strings.TrimSuffix(lo, sl)
 	}
 	return lo + "–" + h
+}
+
+// boundLabel formats a bucket bound like format.Num without trailing zeros
+// ("0.2ms", not "0.20ms").
+func boundLabel(v float64, u format.Unit) string {
+	s := format.Num(v, u)
+	suf := unitSuffix(s)
+	num := strings.TrimSuffix(s, suf)
+	if strings.Contains(num, ".") {
+		num = strings.TrimRight(strings.TrimRight(num, "0"), ".")
+	}
+	return num + suf
 }
 
 // unitSuffix is the trailing run of s that is neither digits nor a point.

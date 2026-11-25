@@ -194,12 +194,12 @@ func TestHistogramPopupListsBuckets(t *testing.T) {
 	}
 	var le1 string
 	for _, ln := range plainLines(out) {
-		if strings.Contains(ln, "│ ≤1.00ms ") {
+		if strings.Contains(ln, "│ ≤1ms ") {
 			le1 = ln
 		}
 	}
 	if !strings.Contains(le1, " 765 ") || !strings.Contains(le1, "82.4%") {
-		t.Errorf("≤1.00ms bucket row = %q", le1)
+		t.Errorf("≤1ms bucket row = %q", le1)
 	}
 	press(m, "down", "down", "down", "down", "down", "down", "down", "down", "down", "down")
 	if !strings.Contains(plain(m.render()), "│ >") {
@@ -367,9 +367,10 @@ func TestPopupBucketsArePerBucket(t *testing.T) {
 			hist = s
 		}
 	}
+	vis := 4
 	rows := func() map[string]string {
 		out := map[string]string{}
-		for _, ln := range strings.Split(plain(strings.Join(m.bucketBox(hist, 80, 4).render(), "\n")), "\n") {
+		for _, ln := range strings.Split(plain(strings.Join(m.bucketBox(hist, 80, vis).render(), "\n")), "\n") {
 			if f := strings.Fields(strings.Trim(ln, "│ ")); len(f) > 0 {
 				out[f[0]] = ln
 			}
@@ -381,7 +382,7 @@ func TestPopupBucketsArePerBucket(t *testing.T) {
 		t.Errorf("header row: %q", r["range"])
 	}
 	for label, want := range map[string][]string{
-		"≤0.15ms": {" 0 ", "0.0%"}, "0.15–0.20ms": {" 1 ", "50.0%", "1.00"}, "0.20–0.30ms": {" 1 ", "50.0%", "1.00"}, ">0.30ms": {" 0 ", "0.0%"},
+		"≤0.15ms": {" 0 ", "0.0%"}, "0.15–0.2ms": {" 1 ", "50.0%", "1.00"}, "0.2–0.3ms": {" 1 ", "50.0%", "1.00"}, ">0.3ms": {" 0 ", "0.0%"},
 	} {
 		for _, w := range want {
 			if !strings.Contains(r[label], w) {
@@ -389,8 +390,39 @@ func TestPopupBucketsArePerBucket(t *testing.T) {
 			}
 		}
 	}
-	m.labOff = 2 // scrolled: the first visible row still subtracts the hidden one above
-	if r := rows(); !strings.Contains(r["0.20–0.30ms"], " 1 ") {
-		t.Errorf("scrolled 0.20–0.30ms row: %q", r["0.20–0.30ms"])
+	m.labOff, vis = 2, 2 // scrolled: the first visible row still subtracts the hidden one above
+	if r := rows(); r["0.15–0.2ms"] != "" || !strings.Contains(r["0.2–0.3ms"], " 1 ") {
+		t.Errorf("scrolled rows: %q", r)
+	}
+}
+
+// A NaN bucket shows "—" on its own row only; the buckets above it keep
+// their own counts.
+func TestPopupBucketsSkipNaNBucket(t *testing.T) {
+	f := newFixture(t, 0)
+	g := "# TYPE g gaugehistogram\ng_bucket{le=\"1\"} 1\ng_bucket{le=\"2\"} NaN\ng_bucket{le=\"3\"} 3\ng_bucket{le=\"+Inf\"} 4\ng_gsum 5\ng_gcount 4\n"
+	f.apply(g)
+	f.apply(g)
+	m := f.model(146, 36)
+	var hist *store.Series
+	for _, s := range m.st.Series() {
+		if s.Hist != nil {
+			hist = s
+		}
+	}
+	box := plain(strings.Join(m.bucketBox(hist, 80, 4).render(), "\n"))
+	for label, want := range map[string]string{"≤1": "1 25.0%", "1–2": "— —", "2–3": "2 50.0%", ">3": "1 25.0%"} {
+		found := false
+		for ln := range strings.SplitSeq(box, "\n") {
+			if f := strings.Fields(strings.Trim(ln, "│ ")); len(f) >= 3 && f[0] == label {
+				found = true
+				if got := f[1] + " " + f[2]; got != want {
+					t.Errorf("%s row = %q, want %q", label, ln, want)
+				}
+			}
+		}
+		if !found {
+			t.Errorf("no %s row:\n%s", label, box)
+		}
 	}
 }

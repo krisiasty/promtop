@@ -27,12 +27,12 @@ func TestHeatmapLayout(t *testing.T) {
 	if !strings.HasPrefix(lines[3], "http_request_duration_seconds  histogram · 11 buckets · columns normalised") {
 		t.Errorf("title = %q", lines[3])
 	}
-	for row, label := range map[int]string{5: ">5.00s", 6: "2.50–5.00s", 9: "250.0–500.0ms", 15: "≤5.00ms"} {
+	for row, label := range map[int]string{5: ">5s", 6: "2.5–5s", 9: "250–500ms", 15: "≤5ms"} {
 		if label = heatLabel(label); !strings.HasPrefix(lines[row], label) {
 			t.Errorf("row %d = %q, want prefix %q", row, lines[row], label)
 		}
 	}
-	cells := []rune(lines[11]) // 50.0–100.0ms row: cells 15..98 are heat cells
+	cells := []rune(lines[11]) // 50–100ms row: cells 15..98 are heat cells
 	for _, r := range cells[rangeW+1 : min(len(cells), 99)] {
 		if !strings.ContainsRune(" ░▒▓█", r) {
 			t.Fatalf("unexpected heat glyph %q in %q", r, lines[11])
@@ -50,7 +50,7 @@ func TestHeatmapLayout(t *testing.T) {
 	if i := strings.Index(lines[4], "╭─ buckets · window 5m ─"); i < 0 || format.Width(lines[4][:i]) != 102 {
 		t.Errorf("buckets panel = %q", lines[4])
 	}
-	if !strings.Contains(lines[5], "│ ≤5.00ms ") || !strings.Contains(lines[15], "│ >5.00s ") || !strings.Contains(lines[17], "╭─ histogram_quantile ─") {
+	if !strings.Contains(lines[5], "│ ≤5ms ") || !strings.Contains(lines[15], "│ >5s ") || !strings.Contains(lines[17], "╭─ histogram_quantile ─") {
 		t.Errorf("panels:\n%s", strings.Join(lines[4:19], "\n"))
 	}
 	if !strings.HasPrefix(lines[34], "last scrape 12:36:59 · changed samples highlighted") {
@@ -80,7 +80,7 @@ func TestHeatmapNarrowPanelCounts(t *testing.T) {
 	assertFrame(t, out, 142, 36)
 	rows := 0
 	for _, ln := range plainLines(out) {
-		if !strings.Contains(ln, "│ ≤") && !strings.Contains(ln, "–") && !strings.Contains(ln, "│ >") {
+		if !strings.Contains(ln, "%") { // only the panel's bucket rows have a share column
 			continue
 		}
 		rows++
@@ -196,7 +196,7 @@ func TestHistogramRatesSkipIncompleteIntervals(t *testing.T) {
 	box := plain(strings.Join(m.bucketBox(hist, 60, 4).render(), "\n"))
 	seen := false
 	for _, line := range strings.Split(box, "\n") {
-		if strings.Contains(line, "│ ≤1.00 ") { // every observation is in this bucket
+		if strings.Contains(line, "│ ≤1 ") { // every observation is in this bucket
 			seen = true
 			if f := strings.Fields(strings.Trim(line, "│ ")); len(f) < 4 || f[3] != "1.00" { // range count share rate bar
 				t.Errorf("popup bucket rate should span only the complete intervals: %q", line)
@@ -204,7 +204,7 @@ func TestHistogramRatesSkipIncompleteIntervals(t *testing.T) {
 		}
 	}
 	if !seen {
-		t.Errorf("popup lacks the ≤1.00 bucket row:\n%s", box)
+		t.Errorf("popup lacks the ≤1 bucket row:\n%s", box)
 	}
 }
 
@@ -220,8 +220,8 @@ func TestHeatmapNaNBuckets(t *testing.T) {
 	out := m.render()
 	assertFrame(t, out, 80, 36)
 	lines := plainLines(out)
-	inf, infOK := strings.CutPrefix(lines[5], format.PadLeft(">1.00", rangeW)) // a blank row has no trailing space
-	le1, le1OK := strings.CutPrefix(lines[6], heatLabel("≤1.00"))
+	inf, infOK := strings.CutPrefix(lines[5], format.PadLeft(">1", rangeW)) // a blank row has no trailing space
+	le1, le1OK := strings.CutPrefix(lines[6], heatLabel("≤1"))
 	if !infOK || !le1OK {
 		t.Fatalf("bucket rows:\n%s\n%s", lines[5], lines[6])
 	}
@@ -281,12 +281,12 @@ func TestHeatmapBudgetsRowsToBodyHeight(t *testing.T) {
 	out := m.render()
 	assertFrame(t, out, 80, 24)
 	body := strings.Join(plainLines(out), "\n")
-	for _, want := range []string{"\n" + heatLabel("p50") + "▁", "\n" + heatLabel("p90"), "\n" + heatLabel("p99"), "   requests/s ", "▲ 4 more buckets", "\n" + heatLabel("250.0–500.0ms"), "\n" + heatLabel("≤5.00ms")} {
+	for _, want := range []string{"\n" + heatLabel("p50") + "▁", "\n" + heatLabel("p90"), "\n" + heatLabel("p99"), "   requests/s ", "▲ 4 more buckets", "\n" + heatLabel("250–500ms"), "\n" + heatLabel("≤5ms")} {
 		if !strings.Contains(body, want) {
 			t.Errorf("80×24 heatmap lacks %q:\n%s", want, body)
 		}
 	}
-	if strings.Contains(body, ">5.00s") || strings.Contains(body, "–1.00s") {
+	if strings.Contains(body, ">5s") || strings.Contains(body, "–1s") {
 		t.Errorf("the top buckets must be the ones dropped:\n%s", body)
 	}
 
@@ -310,7 +310,7 @@ func TestHeatmapBudgetsRowsToBodyHeight(t *testing.T) {
 	out = m.render()
 	assertFrame(t, out, 146, 36)
 	lines := plainLines(out)
-	if !strings.HasPrefix(lines[5], heatIndent+"▲ 21 more buckets") || !strings.HasPrefix(lines[6], heatLabel("18.00–19.00s")) || !strings.HasPrefix(lines[24], heatLabel("≤1.00s")) {
+	if !strings.HasPrefix(lines[5], heatIndent+"▲ 21 more buckets") || !strings.HasPrefix(lines[6], heatLabel("18–19s")) || !strings.HasPrefix(lines[24], heatLabel("≤1s")) {
 		t.Errorf("bucket rows:\n%s", strings.Join(lines[4:26], "\n"))
 	}
 	ticks, _ := format.Axis(99-(rangeW+1), 5*time.Minute)
@@ -322,7 +322,7 @@ func TestHeatmapBudgetsRowsToBodyHeight(t *testing.T) {
 			t.Errorf("quantile row %d = %q", i, lines[28+i])
 		}
 	}
-	if !strings.Contains(lines[5], "│ ≤1.00s ") || !strings.Contains(lines[23], "│ 18.00–19.00s ") || !strings.Contains(lines[24], "│ ▼ 21 more buckets") ||
+	if !strings.Contains(lines[5], "│ ≤1s ") || !strings.Contains(lines[23], "│ 18–19s ") || !strings.Contains(lines[24], "│ ▼ 21 more buckets") ||
 		!strings.Contains(lines[25], "╰──") || !strings.Contains(lines[26], "╭─ histogram_quantile ─") || !strings.Contains(lines[32], "╰──") {
 		t.Errorf("panels:\n%s", strings.Join(lines[4:34], "\n"))
 	}
@@ -397,13 +397,17 @@ func TestBucketRange(t *testing.T) {
 		want string
 	}{
 		{[]float64{0.00015, 0.0002, 0.0003, inf}, 0, format.Seconds, "≤0.15ms"},
-		{[]float64{0.00015, 0.0002, 0.0003, inf}, 1, format.Seconds, "0.15–0.20ms"},
-		{[]float64{0.00015, 0.0002, 0.0003, inf}, 3, format.Seconds, ">0.30ms"},
-		{[]float64{7.5e-5, 1e-4}, 1, format.Seconds, "75.00µs–0.10ms"},
-		{[]float64{0, 0.005}, 1, format.Seconds, "0–5.00ms"},
-		{[]float64{512 * 1024, 1 << 30}, 1, format.Bytes, "512.0Ki–1.00Gi"},
+		{[]float64{0.00015, 0.0002, 0.0003, inf}, 1, format.Seconds, "0.15–0.2ms"},
+		{[]float64{0.00015, 0.0002, 0.0003, inf}, 3, format.Seconds, ">0.3ms"},
+		{[]float64{7.5e-5, 1e-4}, 1, format.Seconds, "75µs–0.1ms"},
+		{[]float64{0, 0.005}, 1, format.Seconds, "0–5ms"},
+		{[]float64{0.05, 0.1}, 1, format.Seconds, "50–100ms"},
+		{[]float64{1200, 1800, 3600}, 2, format.Seconds, "1800–3600s"},
+		{[]float64{-0.005, -0.001}, 1, format.Seconds, "-5–-1ms"},
+		{[]float64{512 * 1024, 1 << 30}, 1, format.Bytes, "512Ki–1Gi"},
 		{[]float64{2500, 5000, inf}, 1, format.None, "2500–5000"},
 		{[]float64{2500, 5000, inf}, 2, format.None, ">5000"},
+		{[]float64{0.25, 0.5}, 1, format.None, "0.25–0.5"},
 		{[]float64{inf}, 0, format.None, "all"},
 	} {
 		if got := bucketRange(c.le, c.k, c.u); got != c.want {
