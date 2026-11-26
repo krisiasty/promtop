@@ -9,6 +9,7 @@ import (
 
 	"github.com/krisiasty/promtop/internal/format"
 	"github.com/krisiasty/promtop/internal/stats"
+	"github.com/krisiasty/promtop/internal/store"
 )
 
 // ghwFixture holds two identical scrapes of a real exporter's payload, so the
@@ -193,16 +194,16 @@ func TestHistogramPopupListsBuckets(t *testing.T) {
 	}
 	var le1 string
 	for _, ln := range plainLines(out) {
-		if strings.Contains(ln, "│ ≤1.00ms ") {
+		if strings.Contains(ln, "│ ≤1ms ") {
 			le1 = ln
 		}
 	}
 	if !strings.Contains(le1, " 765 ") || !strings.Contains(le1, "82.4%") {
-		t.Errorf("≤1.00ms bucket row = %q", le1)
+		t.Errorf("≤1ms bucket row = %q", le1)
 	}
 	press(m, "down", "down", "down", "down", "down", "down", "down", "down", "down", "down")
-	if !strings.Contains(plain(m.render()), "│ +Inf ") {
-		t.Error("scrolling the bucket list must reach +Inf")
+	if !strings.Contains(plain(m.render()), "│ >") {
+		t.Error("scrolling the bucket list must reach the +Inf bucket, labelled >last bound")
 	}
 	if got := format.Num(1.024e-6, format.Seconds); got != "1.02µs" {
 		t.Errorf("µs formatting = %q", got)
@@ -346,4 +347,99 @@ func TestGaugeHistogramCurrentDistributionAcrossViews(t *testing.T) {
 func heatLife(m *Model) bool {
 	_, life := m.heatScope()
 	return life
+}
+
+// The popup lists what each bucket alone observed in the window, not the
+// cumulative le counts: the reported case had 2 observations, one in each of
+// (0.15ms, 0.20ms] and (0.20ms, 0.30ms].
+func TestPopupBucketsArePerBucket(t *testing.T) {
+	f := newFixture(t, 0)
+	text := func(b1, b2, b3, sum float64) string {
+		return fmt.Sprintf("# TYPE h_seconds histogram\nh_seconds_bucket{le=\"0.00015\"} 0\nh_seconds_bucket{le=\"0.0002\"} %g\n"+
+			"h_seconds_bucket{le=\"0.0003\"} %g\nh_seconds_bucket{le=\"+Inf\"} %g\nh_seconds_sum %g\nh_seconds_count %g\n", b1, b2, b3, sum, b3)
+	}
+	f.apply(text(2, 2, 2, 0.000372))
+	f.apply(text(3, 4, 4, 0.000792))
+	m := f.model(146, 36)
+	var hist *store.Series
+	for _, s := range m.st.Series() {
+		if s.Hist != nil {
+			hist = s
+		}
+	}
+	vis := 4
+	rows := func() map[string]string {
+		out := map[string]string{}
+		for ln := range strings.SplitSeq(plain(strings.Join(m.bucketBox(hist, 80, vis).render(), "\n")), "\n") {
+			if f := strings.Fields(strings.Trim(ln, "│ ")); len(f) > 0 {
+				out[f[0]] = ln
+			}
+		}
+		return out
+	}
+	r := rows()
+	if !strings.Contains(r["range"], "count") {
+		t.Errorf("header row: %q", r["range"])
+	}
+	for label, want := range map[string][]string{
+		"≤150µs": {" 0 ", "0.0%"}, "150–200µs": {" 1 ", "50.0%", "1.00", "█"}, "200–300µs": {" 1 ", "50.0%", "1.00", "█"}, ">300µs": {" 0 ", "0.0%"},
+	} {
+		for _, w := range want {
+			if !strings.Contains(r[label], w) {
+				t.Errorf("%s row lacks %q: %q", label, w, r[label])
+			}
+		}
+	}
+	m.labOff, vis = 2, 2 // scrolled: the first visible row still subtracts the hidden one above
+	if r := rows(); r["150–200µs"] != "" || !strings.Contains(r["200–300µs"], " 1 ") {
+		t.Errorf("scrolled rows: %q", r)
+	}
+}
+
+// A NaN bucket and the one above it (whose lower bound is then unknown) show
+// "—"; the other buckets keep their counts, shares and bars.
+func TestPopupBucketsSkipNaNBucket(t *testing.T) {
+	popupBucketCase(t, "# TYPE g gaugehistogram\ng_bucket{le=\"1\"} 1\ng_bucket{le=\"2\"} NaN\ng_bucket{le=\"3\"} 3\ng_bucket{le=\"+Inf\"} 4\ng_gsum 5\ng_gcount 4\n",
+		map[string]string{"≤1": "1 25.0% █", "1–2": "— —", "2–3": "— —", ">3": "1 25.0% █"})
+}
+
+// A NaN +Inf bucket leaves the shares to the observation count.
+func TestPopupBucketsNaNInfUsesCount(t *testing.T) {
+	popupBucketCase(t, "# TYPE g gaugehistogram\ng_bucket{le=\"1\"} 1\ng_bucket{le=\"2\"} 3\ng_bucket{le=\"+Inf\"} NaN\ng_gsum 5\ng_gcount 4\n",
+		map[string]string{"≤1": "1 25.0% █", "1–2": "2 50.0% █", ">2": "— —"})
+}
+
+// popupBucketCase renders the popup buckets of a single-histogram exposition
+// (scraped twice) and checks each row's count, share and, when wanted, bar.
+func popupBucketCase(t *testing.T, g string, rows map[string]string) {
+	t.Helper()
+	f := newFixture(t, 0)
+	f.apply(g)
+	f.apply(g)
+	m := f.model(146, 36)
+	var hist *store.Series
+	for _, s := range m.st.Series() {
+		if s.Hist != nil {
+			hist = s
+		}
+	}
+	box := plain(strings.Join(m.bucketBox(hist, 80, 4).render(), "\n"))
+	for label, want := range rows {
+		found := false
+		for ln := range strings.SplitSeq(box, "\n") {
+			if f := strings.Fields(strings.Trim(ln, "│ ")); len(f) >= 3 && f[0] == label {
+				found = true
+				got := f[1] + " " + f[2]
+				if strings.HasSuffix(want, " █") {
+					got += map[bool]string{true: " █", false: " (no bar)"}[strings.Contains(ln, "█")]
+				}
+				if got != want {
+					t.Errorf("%s row = %q, want %q", label, ln, want)
+				}
+			}
+		}
+		if !found {
+			t.Errorf("no %s row:\n%s", label, box)
+		}
+	}
 }

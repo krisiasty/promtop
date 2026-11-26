@@ -18,6 +18,11 @@ import (
 // heatPanelMin is the narrowest right-hand panel worth drawing.
 const heatPanelMin = 40
 
+// heatPanelW is the widest the buckets panel gets with rw-cell range labels:
+// its widest row (range, gap, 20-cell bar, share, count, borders), so extra
+// terminal width goes to the grid's time columns instead.
+func heatPanelW(rw int) int { return rw + 1 + 20 + 7 + 7 + 4 }
+
 var heatGlyphs = []string{"░", "▒", "▓", "█"}
 
 func (m *Model) heatSourceCount() int { return len(m.heatSources()) }
@@ -57,11 +62,14 @@ func (m *Model) viewHeatmap(lay layout) body {
 	src := srcs[idx]
 	from, to := m.st.Window(m.window)
 	d := m.heatData(src, idx, from, to)
+	rw := rangeWidth(d.LE, src.Unit)
 	pw := lay.w - 102
 	wide := pw >= heatPanelMin
-	ncols, lw := 89, 99
-	if !wide {
-		ncols, lw = lay.w-12, lay.w
+	lw, ncols := lay.w, lay.w-(rw+3)
+	if wide {
+		pw = min(pw, heatPanelW(rw))
+		lw = lay.w - pw - 3
+		ncols = lw - (rw + 1)
 	}
 	cols := heatColumns(d, m.st.Times(from, to), m.st.LastTime(), m.window, ncols)
 	// Reserve the title, blank, axis (2), blank, three quantile rows and the
@@ -83,11 +91,11 @@ func (m *Model) viewHeatmap(lay layout) body {
 		add(kind+" · "+strconv.Itoa(len(d.LE))+" buckets · columns normalised", th.dim)
 	left := []string{""}
 	if hidden > 0 {
-		left = append(left, (&row{}).space(10).add("▲ "+strconv.Itoa(hidden)+" more buckets", th.dim).String(lw))
+		left = append(left, (&row{}).space(rw+1).add("▲ "+strconv.Itoa(hidden)+" more buckets", th.dim).String(lw))
 	}
 	for k := nb - 1; k >= 0; k-- {
 		r := &row{}
-		r.right(bucketLabel(d.LE[k], src.Unit), 9, th.dim).space(1)
+		r.right(bucketRange(d.LE, k, src.Unit), rw, th.dim).space(1)
 		for _, c := range cols {
 			mx := 0.0
 			for _, v := range c {
@@ -108,7 +116,7 @@ func (m *Model) viewHeatmap(lay layout) body {
 		left = append(left, r.String(lw))
 	}
 	ticks, labels := format.Axis(ncols, m.window)
-	left = append(left, (&row{}).space(10).add(ticks, th.axis).String(lw), (&row{}).space(10).add(labels, th.dim).String(lw), "")
+	left = append(left, (&row{}).space(rw+1).add(ticks, th.axis).String(lw), (&row{}).space(rw+1).add(labels, th.dim).String(lw), "")
 
 	qs := []struct {
 		k  string
@@ -128,7 +136,7 @@ func (m *Model) viewHeatmap(lay layout) body {
 		}
 	}
 	for i, q := range qs {
-		left = append(left, (&row{}).right(q.k, 9, th.dim).space(1).add(format.Spark(qv[i], ncols, 0, qmx), q.st).String(lw))
+		left = append(left, (&row{}).right(q.k, rw, th.dim).space(1).add(format.Spark(qv[i], ncols, 0, qmx), q.st).String(lw))
 	}
 
 	tb := heatBuckets(d)
@@ -140,13 +148,11 @@ func (m *Model) viewHeatmap(lay layout) body {
 			cum, tb, sum, count = tc, perBucket(tc), ts, tn
 		}
 	}
-	tot, most := 0.0, 0.0
-	if len(cum) > 0 {
+	tot := count // the +Inf bucket, or the count when +Inf is unknown
+	if len(cum) > 0 && !math.IsNaN(cum[len(cum)-1]) {
 		tot = cum[len(cum)-1]
 	}
-	for _, v := range tb {
-		most = math.Max(most, v)
-	}
+	most := maxKnown(tb)
 	summary := []struct {
 		k, v string
 		st   lipgloss.Style
@@ -163,28 +169,34 @@ func (m *Model) viewHeatmap(lay layout) body {
 		summary[4] = struct {
 			k, v string
 			st   lipgloss.Style
-		}{"observed", format.SI(count), th.dim}
+		}{"observed", format.Count(count), th.dim}
 	}
 	if d.Gauge {
 		scope = "current distribution"
-		summary[4].k, summary[4].v = "observed", format.SI(count)
+		summary[4].k, summary[4].v = "observed", format.Count(count)
 	}
 
 	var right []string
 	if wide {
 		bb := box{w: pw, pad: 1, title: "buckets · " + scope, titleStyle: th.dim, border: th.line}
 		in := bb.inner()
-		barW := min(20, in-8-7-5) // keep the count column at 5 cells even when the panel is narrow
+		// The count column keeps 6 cells (5 + gap) even when the panel is
+		// narrow: the bar gives way first, then the range label.
+		labW := min(rw, in-1-7-6)
+		barW := clamp(in-labW-1-7-6, 0, 20)
 		for k, c := range tb[:nb] {
 			bar, pct := "", "0.0%"
 			if c > 0 && most > 0 {
 				bar = format.Bar(c/most, barW)
 			}
-			if tot > 0 {
+			switch {
+			case math.IsNaN(c):
+				pct = "—"
+			case tot > 0:
 				pct = strconv.FormatFloat(c/tot*100, 'f', 1, 64) + "%"
 			}
-			bb.lines = append(bb.lines, (&row{}).left(bucketLabel(d.LE[k], src.Unit), 8, th.prev).left(bar, barW, th.cyan).
-				right(pct, 7, th.stat).right(format.SI(c), in-8-barW-7, th.dim).String(in))
+			bb.lines = append(bb.lines, (&row{}).left(bucketRange(d.LE, k, src.Unit), labW, th.prev).space(1).left(bar, barW, th.cyan).
+				right(pct, 7, th.stat).right(format.Count(c), in-labW-1-barW-7, th.dim).String(in))
 		}
 		if hidden > 0 { // the panel lists buckets upwards: the dropped ones are last
 			bb.lines = append(bb.lines, (&row{}).add("▼ "+strconv.Itoa(hidden)+" more buckets", th.dim).String(in))
@@ -196,14 +208,15 @@ func (m *Model) viewHeatmap(lay layout) body {
 		right = append(bb.render(), qb.render()...)
 	} else {
 		sr := &row{}
-		sr.space(10)
 		for i, s := range summary {
 			if i > 0 {
 				sr.space(3)
 			}
 			sr.add(s.k+" ", s.st).add(s.v, th.hi)
 		}
-		left = append(left, "", sr.String(lw))
+		// Line up with the grid when the summary fits, else give up indent first.
+		indent := clamp(lw-sr.width(), 0, rw+1)
+		left = append(left, "", strings.Repeat(" ", indent)+sr.String(lw-indent))
 	}
 
 	b.lines = []string{t.String(lay.w)}
@@ -296,22 +309,84 @@ func heatBuckets(d store.HeatData) []float64 {
 	return tb
 }
 
-// perBucket turns cumulative bucket counts into per-bucket counts.
+// perBucket turns cumulative bucket counts into per-bucket counts. A NaN
+// bucket is unknown, and so is the one above it (its lower bound's count is
+// missing); the buckets beyond keep their own counts.
 func perBucket(cum []float64) []float64 {
 	out := make([]float64, len(cum))
-	below := 0.0
+	below, gap := 0.0, false
 	for k, c := range cum {
-		out[k] = math.Max(0, c-below)
+		switch {
+		case math.IsNaN(c):
+			out[k], gap = c, true
+			continue
+		case gap:
+			out[k], gap = math.NaN(), false
+		default:
+			out[k] = math.Max(0, c-below)
+		}
 		below = math.Max(below, c)
 	}
 	return out
 }
 
-func bucketLabel(le float64, u format.Unit) string {
-	if math.IsInf(le, 1) {
-		return "+Inf"
+// maxKnown is the largest non-NaN value of vs (0 when none is).
+func maxKnown(vs []float64) float64 {
+	most := 0.0
+	for _, v := range vs {
+		if v > most { // false for NaN
+			most = v
+		}
 	}
-	return "≤" + format.Num(le, u)
+	return most
+}
+
+// rangeMin and rangeMax bound a range label column: wide enough for the
+// popup's "range" header, and capped so a pathological bound ("123.456789G")
+// truncates instead of crowding out the grid. Typical labels ("750µs–1.25ms")
+// fit well inside.
+const (
+	rangeMin = 5
+	rangeMax = 24
+)
+
+// rangeWidth is the label column that fits every bucketRange of le.
+func rangeWidth(le []float64, u format.Unit) int {
+	w := rangeMin
+	for k := range le {
+		w = max(w, format.Width(bucketRange(le, k, u)))
+	}
+	return min(w, rangeMax)
+}
+
+// bucketRange labels bucket k by the observations it alone holds: "≤hi" for
+// the first (its lower bound is unknown), "lo–hi" in between (a unit both
+// ends share is written once), ">lo" for +Inf, and "all" for a lone +Inf.
+// Bounds print exactly (format.Bound).
+func bucketRange(le []float64, k int, u format.Unit) string {
+	hi := le[k]
+	switch {
+	case math.IsInf(hi, 1) && k == 0:
+		return "all"
+	case math.IsInf(hi, 1):
+		return ">" + format.Bound(le[k-1], u)
+	case k == 0:
+		return "≤" + format.Bound(hi, u)
+	}
+	lo, h := format.Bound(le[k-1], u), format.Bound(hi, u)
+	if sl, sh := unitSuffix(lo), unitSuffix(h); sl != "" && sl == sh {
+		lo = strings.TrimSuffix(lo, sl)
+	}
+	return lo + "–" + h
+}
+
+// unitSuffix is the trailing run of s that is neither digits nor a point.
+func unitSuffix(s string) string {
+	i := len(s)
+	for i > 0 && s[i-1] != '.' && (s[i-1] < '0' || s[i-1] > '9') {
+		i--
+	}
+	return s[i:]
 }
 
 // heatColumns folds each scrape's bucket increments into its time column.

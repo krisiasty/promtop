@@ -160,3 +160,43 @@ func TestTimestamps(t *testing.T) {
 		t.Error("IsEpoch")
 	}
 }
+
+func TestCount(t *testing.T) {
+	for v, want := range map[float64]string{0: "0", 2: "2", 765: "765", 9999: "9999", 12345: "12.3k", 1.5: "1.50", math.NaN(): "—"} {
+		if got := Count(v); got != want {
+			t.Errorf("Count(%v) = %q, want %q", v, got, want)
+		}
+	}
+}
+
+func TestBound(t *testing.T) {
+	for _, c := range []struct {
+		v    float64
+		u    Unit
+		want string
+	}{
+		{0, Seconds, "0"},
+		{0.00015, Seconds, "150µs"},
+		{0.00125, Seconds, "1.25ms"},
+		{9.999e-7, Seconds, "999.9ns"},
+		{1800, Seconds, "1800s"},
+		{-0.005, Seconds, Minus + "5ms"},
+		{1280, Bytes, "1.25Ki"},
+		{512, Bytes, "512B"},
+		{1 << 40, Bytes, "1Ti"},
+		{0.0125, None, "0.0125"},
+		{1e-5, None, "0.00001"},
+		{10010, None, "10.01k"},
+		{1.23456e12, None, "1.23456T"},
+		{math.NaN(), None, "—"},
+		{math.Inf(1), None, "+Inf"},
+		{0.0009999999999999998, Seconds, "1ms"}, // float noise just under a unit threshold
+		{0.9999999999999999, Seconds, "1s"},
+		{999.9999999999999, None, "1k"},
+		{1023.9999999999999, Bytes, "1Ki"},
+	} {
+		if got := Bound(c.v, c.u); got != c.want {
+			t.Errorf("Bound(%v, %v) = %q, want %q", c.v, c.u, got, c.want)
+		}
+	}
+}

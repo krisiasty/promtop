@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 	"time"
@@ -9,6 +10,16 @@ import (
 	"github.com/krisiasty/promtop/internal/format"
 	"github.com/krisiasty/promtop/internal/store"
 )
+
+// heatIndent is the grid's rw-cell label column plus its gap; heatLabel is a
+// row's right-aligned label in it.
+func heatIndent(rw int) string { return strings.Repeat(" ", rw+1) }
+
+func heatLabel(rw int, s string) string { return format.PadLeft(s, rw) + " " }
+
+// httpRW is the label column of the demo's http_request_duration_seconds
+// ("100–250ms", "250–500ms" are the widest).
+const httpRW = 9
 
 func TestHeatmapLayout(t *testing.T) {
 	f := newFixture(t, fixtureSteps)
@@ -20,30 +31,30 @@ func TestHeatmapLayout(t *testing.T) {
 	if !strings.HasPrefix(lines[3], "http_request_duration_seconds  histogram · 11 buckets · columns normalised") {
 		t.Errorf("title = %q", lines[3])
 	}
-	for row, label := range map[int]string{5: "     +Inf ", 6: "   ≤5.00s ", 9: " ≤500.0ms ", 15: "  ≤5.00ms "} {
-		if !strings.HasPrefix(lines[row], label) {
+	for row, label := range map[int]string{5: ">5s", 6: "2.5–5s", 9: "250–500ms", 15: "≤5ms"} {
+		if label = heatLabel(httpRW, label); !strings.HasPrefix(lines[row], label) {
 			t.Errorf("row %d = %q, want prefix %q", row, lines[row], label)
 		}
 	}
-	cells := []rune(lines[11]) // ≤100.0ms row: cells 10..98 are heat cells
-	for _, r := range cells[10:min(len(cells), 99)] {
+	cells := []rune(lines[11]) // 50–100ms row: cells 10..98 are heat cells
+	for _, r := range cells[httpRW+1 : min(len(cells), 99)] {
 		if !strings.ContainsRune(" ░▒▓█", r) {
 			t.Fatalf("unexpected heat glyph %q in %q", r, lines[11])
 		}
 	}
-	ticks, labels := format.Axis(89, 5*time.Minute)
-	if !strings.HasPrefix(lines[16], strings.Repeat(" ", 10)+ticks) || !strings.HasPrefix(lines[17], strings.Repeat(" ", 10)+strings.TrimRight(labels, " ")) {
+	ticks, labels := format.Axis(99-(httpRW+1), 5*time.Minute)
+	if !strings.HasPrefix(lines[16], heatIndent(httpRW)+ticks) || !strings.HasPrefix(lines[17], heatIndent(httpRW)+strings.TrimRight(labels, " ")) {
 		t.Errorf("axis:\n%s\n%s", lines[16], lines[17])
 	}
-	for i, q := range []string{"      p50 ", "      p90 ", "      p99 "} {
-		if !strings.HasPrefix(lines[19+i], q) {
+	for i, q := range []string{"p50", "p90", "p99"} {
+		if !strings.HasPrefix(lines[19+i], heatLabel(httpRW, q)) {
 			t.Errorf("quantile row %d = %q", i, lines[19+i])
 		}
 	}
 	if i := strings.Index(lines[4], "╭─ buckets · window 5m ─"); i < 0 || format.Width(lines[4][:i]) != 102 {
 		t.Errorf("buckets panel = %q", lines[4])
 	}
-	if !strings.Contains(lines[5], "│ ≤5.00ms ") || !strings.Contains(lines[15], "│ +Inf ") || !strings.Contains(lines[17], "╭─ histogram_quantile ─") {
+	if !strings.Contains(lines[5], "│ ≤5ms ") || !strings.Contains(lines[15], "│ >5s ") || !strings.Contains(lines[17], "╭─ histogram_quantile ─") {
 		t.Errorf("panels:\n%s", strings.Join(lines[4:19], "\n"))
 	}
 	if !strings.HasPrefix(lines[34], "last scrape 12:36:59 · changed samples highlighted") {
@@ -53,7 +64,7 @@ func TestHeatmapLayout(t *testing.T) {
 	m = f.model(80, 36)
 	m.view = ViewHeatmap
 	lines = plainLines(m.render())
-	if !strings.HasPrefix(lines[23], "          p50 ") || !strings.Contains(lines[23], "   requests/s ") || strings.Contains(lines[4], "╭") {
+	if !strings.HasPrefix(strings.TrimLeft(lines[23], " "), "p50 ") || !strings.HasSuffix(strings.TrimRight(lines[23], " "), "requests/s 232") || !strings.Contains(lines[23], "   requests/s ") || strings.Contains(lines[4], "╭") {
 		t.Errorf("narrow summary = %q", lines[23])
 	}
 	press(m, "m")
@@ -71,13 +82,18 @@ func TestHeatmapNarrowPanelCounts(t *testing.T) {
 	m.view = ViewHeatmap
 	out := m.render()
 	assertFrame(t, out, 142, 36)
+	rows := 0
 	for _, ln := range plainLines(out) {
-		if !strings.Contains(ln, "│ ≤") && !strings.Contains(ln, "│ +Inf ") {
+		if !strings.Contains(ln, "%") { // only the panel's bucket rows have a share column
 			continue
 		}
+		rows++
 		if strings.Contains(ln, "… │") {
 			t.Errorf("count column truncated: %q", ln)
 		}
+	}
+	if rows < 11 {
+		t.Errorf("found %d bucket panel rows, want 11", rows)
 	}
 }
 
@@ -182,10 +198,17 @@ func TestHistogramRatesSkipIncompleteIntervals(t *testing.T) {
 		}
 	}
 	box := plain(strings.Join(m.bucketBox(hist, 60, 4).render(), "\n"))
+	seen := false
 	for _, line := range strings.Split(box, "\n") {
-		if strings.Contains(line, "+Inf") && !strings.Contains(line, "1.00") {
-			t.Errorf("popup bucket rate should span only the complete intervals: %q", line)
+		if strings.Contains(line, "│ ≤1 ") { // every observation is in this bucket
+			seen = true
+			if f := strings.Fields(strings.Trim(line, "│ ")); len(f) < 4 || f[3] != "1.00" { // range count share rate bar
+				t.Errorf("popup bucket rate should span only the complete intervals: %q", line)
+			}
 		}
+	}
+	if !seen {
+		t.Errorf("popup lacks the ≤1 bucket row:\n%s", box)
 	}
 }
 
@@ -201,8 +224,8 @@ func TestHeatmapNaNBuckets(t *testing.T) {
 	out := m.render()
 	assertFrame(t, out, 80, 36)
 	lines := plainLines(out)
-	inf, infOK := strings.CutPrefix(lines[5], "     +Inf")
-	le1, le1OK := strings.CutPrefix(lines[6], "    ≤1.00 ")
+	inf, infOK := strings.CutPrefix(lines[5], format.PadLeft(">1", rangeMin)) // a blank row has no trailing space
+	le1, le1OK := strings.CutPrefix(lines[6], heatLabel(rangeMin, "≤1"))
 	if !infOK || !le1OK {
 		t.Fatalf("bucket rows:\n%s\n%s", lines[5], lines[6])
 	}
@@ -262,12 +285,13 @@ func TestHeatmapBudgetsRowsToBodyHeight(t *testing.T) {
 	out := m.render()
 	assertFrame(t, out, 80, 24)
 	body := strings.Join(plainLines(out), "\n")
-	for _, want := range []string{"\n      p50 ▁", "\n      p90 ", "\n      p99 ", "\n          p50 ", "   requests/s ", "▲ 4 more buckets", "\n ≤500.0ms ", "\n  ≤5.00ms "} {
+	for _, want := range []string{"\n" + heatLabel(httpRW, "p50") + "▁", "\n" + heatLabel(httpRW, "p90"), "\n" + heatLabel(httpRW, "p99"), "   requests/s ", "▲ 4 more buckets",
+		"\n" + heatLabel(httpRW, "250–500ms"), "\n" + heatLabel(httpRW, "≤5ms")} {
 		if !strings.Contains(body, want) {
 			t.Errorf("80×24 heatmap lacks %q:\n%s", want, body)
 		}
 	}
-	if strings.Contains(body, "+Inf") || strings.Contains(body, "≤1.00s") {
+	if strings.Contains(body, ">5s") || strings.Contains(body, "–1s") {
 		t.Errorf("the top buckets must be the ones dropped:\n%s", body)
 	}
 
@@ -291,19 +315,20 @@ func TestHeatmapBudgetsRowsToBodyHeight(t *testing.T) {
 	out = m.render()
 	assertFrame(t, out, 146, 36)
 	lines := plainLines(out)
-	if !strings.HasPrefix(lines[5], "          ▲ 21 more buckets") || !strings.HasPrefix(lines[6], "  ≤19.00s ") || !strings.HasPrefix(lines[24], "   ≤1.00s ") {
+	const bigRW = 6 // "38–39s"
+	if !strings.HasPrefix(lines[5], heatIndent(bigRW)+"▲ 21 more buckets") || !strings.HasPrefix(lines[6], heatLabel(bigRW, "18–19s")) || !strings.HasPrefix(lines[24], heatLabel(bigRW, "≤1s")) {
 		t.Errorf("bucket rows:\n%s", strings.Join(lines[4:26], "\n"))
 	}
-	ticks, _ := format.Axis(89, 5*time.Minute)
-	if !strings.HasPrefix(lines[25], strings.Repeat(" ", 10)+ticks) || !strings.HasPrefix(lines[26], "          -5m") {
+	ticks, _ := format.Axis(99-(bigRW+1), 5*time.Minute)
+	if !strings.HasPrefix(lines[25], heatIndent(bigRW)+ticks) || !strings.HasPrefix(lines[26], heatIndent(bigRW)+"-5m") {
 		t.Errorf("axis:\n%s\n%s", lines[25], lines[26])
 	}
-	for i, q := range []string{"      p50 ", "      p90 ", "      p99 "} {
-		if !strings.HasPrefix(lines[28+i], q) {
+	for i, q := range []string{"p50", "p90", "p99"} {
+		if !strings.HasPrefix(lines[28+i], heatLabel(bigRW, q)) {
 			t.Errorf("quantile row %d = %q", i, lines[28+i])
 		}
 	}
-	if !strings.Contains(lines[5], "│ ≤1.00s ") || !strings.Contains(lines[23], "│ ≤19.00s ") || !strings.Contains(lines[24], "│ ▼ 21 more buckets") ||
+	if !strings.Contains(lines[5], "│ ≤1s ") || !strings.Contains(lines[23], "│ 18–19s ") || !strings.Contains(lines[24], "│ ▼ 21 more buckets") ||
 		!strings.Contains(lines[25], "╰──") || !strings.Contains(lines[26], "╭─ histogram_quantile ─") || !strings.Contains(lines[32], "╰──") {
 		t.Errorf("panels:\n%s", strings.Join(lines[4:34], "\n"))
 	}
@@ -366,5 +391,137 @@ rpc_seconds_count 1
 	press(m, "esc", "/", "z", "enter")
 	if lines = plainLines(m.render()); lineWith(lines, "No histograms match. Esc clears the filter.") == "" {
 		t.Errorf("empty filter result:\n%s", strings.Join(lines, "\n"))
+	}
+}
+
+func TestBucketRange(t *testing.T) {
+	inf := math.Inf(1)
+	for _, c := range []struct {
+		le   []float64
+		k    int
+		u    format.Unit
+		want string
+	}{
+		{[]float64{0.00015, 0.0002, 0.0003, inf}, 0, format.Seconds, "≤150µs"},
+		{[]float64{0.00015, 0.0002, 0.0003, inf}, 1, format.Seconds, "150–200µs"},
+		{[]float64{0.00015, 0.0002, 0.0003, inf}, 3, format.Seconds, ">300µs"},
+		{[]float64{0.00075, 0.00125}, 1, format.Seconds, "750µs–1.25ms"}, // rangeMax's doc example
+		{[]float64{0, 0.005}, 1, format.Seconds, "0–5ms"},
+		{[]float64{0.05, 0.1}, 1, format.Seconds, "50–100ms"},
+		{[]float64{1200, 1800, 3600}, 2, format.Seconds, "1800–3600s"},
+		{[]float64{-0.005, -0.001}, 1, format.Seconds, "−5–−1ms"},
+		{[]float64{512 * 1024, 1 << 30}, 1, format.Bytes, "512Ki–1Gi"},
+		{[]float64{1280, 2560}, 1, format.Bytes, "1.25–2.5Ki"},
+		{[]float64{2500, 5000, inf}, 1, format.None, "2.5–5k"},
+		{[]float64{2500, 5000, inf}, 2, format.None, ">5k"},
+		{[]float64{0.25, 0.5}, 1, format.None, "0.25–0.5"},
+		{[]float64{1e-5, 2e-5}, 0, format.None, "≤0.00001"},
+		{[]float64{1e-5, 2e-5}, 1, format.None, "0.00001–0.00002"},
+		{[]float64{10000, 10010}, 1, format.None, "10–10.01k"},
+		{[]float64{0.0125}, 0, format.None, "≤0.0125"},
+		{[]float64{inf}, 0, format.None, "all"},
+	} {
+		if got := bucketRange(c.le, c.k, c.u); got != c.want {
+			t.Errorf("bucketRange(%v, %d) = %q, want %q", c.le, c.k, got, c.want)
+		}
+	}
+}
+
+// On a wide terminal the extra width goes to the grid's time columns; the
+// buckets panel stops at heatPanelW instead of stretching.
+func TestRangeWidth(t *testing.T) {
+	inf := math.Inf(1)
+	for _, c := range []struct {
+		le   []float64
+		u    format.Unit
+		want int
+	}{
+		{[]float64{inf}, format.None, rangeMin},                            // "all" is narrower than the "range" header
+		{[]float64{9.999e-7, 9.999e-5, inf}, format.Seconds, 15},           // "999.9ns–99.99µs"
+		{[]float64{1.23456e11, 1.23456e12}, format.None, 17},               // "123.456G–1.23456T"
+		{[]float64{1.234567891e11, 1.234567891e12}, format.None, rangeMax}, // capped
+	} {
+		if got := rangeWidth(c.le, c.u); got != c.want {
+			t.Errorf("rangeWidth(%v) = %d, want %d", c.le, got, c.want)
+		}
+	}
+}
+
+func TestHeatmapGridGrowsOnWideTerminal(t *testing.T) {
+	f := newFixture(t, fixtureSteps)
+	m := f.model(240, 36)
+	m.view = ViewHeatmap
+	out := m.render()
+	assertFrame(t, out, 240, 36)
+	lines := plainLines(out)
+	pw := heatPanelW(httpRW)
+	lw := 240 - pw - 3
+	i := strings.Index(lines[4], "╭─ buckets")
+	if i < 0 || format.Width(lines[4][:i]) != lw+3 || format.Width(strings.TrimRight(lines[4][i:], " ")) != pw {
+		t.Errorf("buckets panel should start at %d and be %d wide: %q", lw+3, pw, lines[4])
+	}
+	ticks, _ := format.Axis(lw-(httpRW+1), 5*time.Minute)
+	if !strings.HasPrefix(lines[16], heatIndent(httpRW)+ticks+" ") {
+		t.Errorf("axis should span %d columns: %q", lw-(httpRW+1), lines[16])
+	}
+}
+
+// With a NaN +Inf bucket the wide panel takes its shares from the count and
+// shows the NaN bucket as "—", never "NaN%".
+func TestHeatmapPanelNaNBucket(t *testing.T) {
+	f := newFixture(t, 0)
+	for i := range 5 {
+		f.apply(fmt.Sprintf("# TYPE h histogram\nh_bucket{le=\"1\"} %d\nh_bucket{le=\"+Inf\"} NaN\nh_sum 1\nh_count %d\n", 10*i, 10*i))
+	}
+	m := f.model(146, 36)
+	m.view = ViewHeatmap
+	out := m.render()
+	assertFrame(t, out, 146, 36)
+	text := plain(out)
+	if strings.Contains(text, "NaN") {
+		t.Errorf("panel shows NaN:\n%s", text)
+	}
+	for label, want := range map[string]string{"≤1": "100.0%", ">1": "—"} {
+		found := false
+		for ln := range strings.SplitSeq(text, "\n") {
+			if i := strings.Index(ln, "│ "+label+" "); i >= 0 {
+				found = true
+				if !strings.Contains(ln[i:], want) {
+					t.Errorf("%s panel row = %q, want %q", label, ln[i:], want)
+				}
+			}
+		}
+		if !found {
+			t.Errorf("no %s panel row:\n%s", label, text)
+		}
+	}
+}
+
+// At the narrowest panel (w=142, pw=40) the widest range labels give way to
+// the count column, which keeps its 6 cells.
+func TestHeatmapNarrowPanelWideLabels(t *testing.T) {
+	f := newFixture(t, 0)
+	for i := range 3 {
+		f.apply(fmt.Sprintf("# TYPE h histogram\nh_bucket{le=\"1.234567891e11\"} %d\nh_bucket{le=\"1.234567891e12\"} %d\nh_bucket{le=\"+Inf\"} %d\nh_sum 1\nh_count %d\n",
+			0, 12345*i, 12345*i, 12345*i))
+	}
+	m := f.model(142, 36)
+	m.view = ViewHeatmap
+	out := m.render()
+	assertFrame(t, out, 142, 36)
+	seen := false
+	for _, ln := range plainLines(out) {
+		if !strings.Contains(ln, "%") { // the panel's bucket rows
+			continue
+		}
+		if strings.HasSuffix(strings.TrimRight(ln, " "), "24.7k │") {
+			seen = true
+		}
+		if strings.Contains(ln, "… │") {
+			t.Errorf("count column truncated: %q", ln)
+		}
+	}
+	if !seen {
+		t.Errorf("no panel row shows the 24.7k count:\n%s", plain(out))
 	}
 }

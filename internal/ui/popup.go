@@ -157,7 +157,7 @@ func (m *Model) detailsPopup(lay layout, s *store.Series, idx, n int) []string {
 	samples, raw := [2]string{"samples", strconv.Itoa(x.N)}, [2]string{"raw value", format.Raw(s.Last())}
 	if s.Hist != nil {
 		v := m.histView(s.Hist)
-		samples, raw = [2]string{"observed", format.SI(v.count)}, [2]string{"sum", m.num(v.sum, u)}
+		samples, raw = [2]string{"observed", format.Count(v.count)}, [2]string{"sum", m.num(v.sum, u)}
 	}
 	sb := box{w: inner, pad: 1, title: title, titleStyle: th.dim, border: th.line}
 	sb.lines = grid([][2]string{
@@ -225,10 +225,10 @@ func (m *Model) detailsPopup(lay layout, s *store.Series, idx, n int) []string {
 		topRight: strconv.Itoa(idx+1) + " / " + strconv.Itoa(n), topRightStyle: th.dim, border: th.cyan, lines: lines}.render()
 }
 
-// bucketBox lists a histogram's buckets from the popup's scroll offset: upper
-// bound, cumulative count and share (window or lifetime, like the stats), the
-// cumulative rate over the window (counters only), and the bucket's own count
-// as a bar.
+// bucketBox lists a histogram's buckets from the popup's scroll offset: the
+// bucket's range and what it alone holds (not the cumulative le counts):
+// count, share and bar (window or lifetime, like the stats) and rate over the
+// window (counters only).
 func (m *Model) bucketBox(s *store.Series, width, vis int) box {
 	th := &m.th
 	h := s.Hist
@@ -247,39 +247,40 @@ func (m *Model) bucketBox(s *store.Series, width, vis int) box {
 	b := box{w: width, pad: 1, title: "buckets · " + strconv.Itoa(n), titleStyle: th.dim, border: th.line,
 		topRightStyle: th.cyan, markStyle: th.cyan}
 	in := b.inner()
-	barW := clamp(in-10-10-8-rateW-2, 0, 30)
-	hdr := (&row{}).left("le", 10, th.dim).right("count", 10, th.dim).right("share", 8, th.dim)
+	rw := rangeWidth(h.LE, s.Unit)
+	barW := clamp(in-rw-10-8-rateW-2, 0, 30)
+	hdr := (&row{}).left("range", rw, th.dim).right("count", 10, th.dim).right("share", 8, th.dim)
 	if rateW > 0 {
 		hdr.right("rate/s", rateW, th.dim)
 	}
 	b.lines = []string{hdr.String(in)}
-	most, below := 0.0, 0.0
-	for _, c := range v.cum {
-		most, below = math.Max(most, c-below), math.Max(below, c)
-	}
-	total := math.NaN()
+	var own []float64
+	most, total := 0.0, math.NaN()
 	if len(v.cum) == n && n > 0 {
-		total = v.cum[n-1]
+		own, total = perBucket(v.cum), v.cum[n-1]
+		if math.IsNaN(total) { // +Inf unknown: the observation count still is
+			total = v.count
+		}
+		most = maxKnown(own)
+	}
+	if len(inc) == n {
+		inc = perBucket(inc)
 	}
 	for k := off; k < min(n, off+vis); k++ {
 		cnt, share, rate, bar := math.NaN(), "—", math.NaN(), ""
-		if len(v.cum) == n {
-			cnt = v.cum[k]
-			if total > 0 {
+		if own != nil {
+			cnt = own[k]
+			if total > 0 && !math.IsNaN(cnt) {
 				share = strconv.FormatFloat(cnt/total*100, 'f', 1, 64) + "%"
 			}
-			own := cnt
-			if k > 0 {
-				own -= v.cum[k-1]
-			}
-			if own > 0 && most > 0 {
-				bar = format.Bar(own/most, barW)
+			if cnt > 0 && most > 0 {
+				bar = format.Bar(cnt/most, barW)
 			}
 		}
 		if len(inc) == n && secs > 0 {
 			rate = inc[k] / secs
 		}
-		r := (&row{}).left(bucketLabel(h.LE[k], s.Unit), 10, th.prev).right(format.SI(cnt), 10, th.hi).right(share, 8, th.stat)
+		r := (&row{}).left(bucketRange(h.LE, k, s.Unit), rw, th.prev).right(format.Count(cnt), 10, th.hi).right(share, 8, th.stat)
 		if rateW > 0 {
 			r.right(format.SI(rate), rateW, th.dim)
 		}
