@@ -2,7 +2,6 @@ package ui
 
 import (
 	"math"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -248,8 +247,9 @@ func (m *Model) bucketBox(s *store.Series, width, vis int) box {
 	b := box{w: width, pad: 1, title: "buckets · " + strconv.Itoa(n), titleStyle: th.dim, border: th.line,
 		topRightStyle: th.cyan, markStyle: th.cyan}
 	in := b.inner()
-	barW := clamp(in-rangeW-10-8-rateW-2, 0, 30)
-	hdr := (&row{}).left("range", rangeW, th.dim).right("count", 10, th.dim).right("share", 8, th.dim)
+	rw := rangeWidth(h.LE, s.Unit)
+	barW := clamp(in-rw-10-8-rateW-2, 0, 30)
+	hdr := (&row{}).left("range", rw, th.dim).right("count", 10, th.dim).right("share", 8, th.dim)
 	if rateW > 0 {
 		hdr.right("rate/s", rateW, th.dim)
 	}
@@ -258,7 +258,10 @@ func (m *Model) bucketBox(s *store.Series, width, vis int) box {
 	most, total := 0.0, math.NaN()
 	if len(v.cum) == n && n > 0 {
 		own, total = perBucket(v.cum), v.cum[n-1]
-		most = slices.Max(own)
+		if math.IsNaN(total) { // +Inf unknown: the observation count still is
+			total = v.count
+		}
+		most = maxKnown(own)
 	}
 	if len(inc) == n {
 		inc = perBucket(inc)
@@ -277,7 +280,7 @@ func (m *Model) bucketBox(s *store.Series, width, vis int) box {
 		if len(inc) == n && secs > 0 {
 			rate = inc[k] / secs
 		}
-		r := (&row{}).left(bucketRange(h.LE, k, s.Unit), rangeW, th.prev).right(format.Count(cnt), 10, th.hi).right(share, 8, th.stat)
+		r := (&row{}).left(bucketRange(h.LE, k, s.Unit), rw, th.prev).right(format.Count(cnt), 10, th.hi).right(share, 8, th.stat)
 		if rateW > 0 {
 			r.right(format.SI(rate), rateW, th.dim)
 		}

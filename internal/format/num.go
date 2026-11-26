@@ -95,6 +95,67 @@ func SI(v float64) string {
 	return fixed(v, 4)
 }
 
+// Bound formats a histogram bucket bound: an exact configured value, so it
+// keeps every significant digit (up to 12) and drops trailing zeros, scaled to
+// the unit prefix that keeps it at or above 1 ("150µs", "1.25Ki", "10.01k").
+// Negative bounds use Minus so they stay readable next to a range dash.
+func Bound(v float64, u Unit) string {
+	switch {
+	case math.IsNaN(v):
+		return "—"
+	case math.IsInf(v, 1):
+		return "+Inf"
+	case math.IsInf(v, -1):
+		return Minus + "Inf"
+	case v == 0:
+		return "0"
+	}
+	a := math.Abs(v)
+	scale, suf := 1.0, ""
+	switch u {
+	case Bytes:
+		scale, suf = 1, "B"
+		for _, p := range []struct {
+			s float64
+			n string
+		}{{1 << 40, "Ti"}, {1 << 30, "Gi"}, {1 << 20, "Mi"}, {1 << 10, "Ki"}} {
+			if a >= p.s {
+				scale, suf = p.s, p.n
+				break
+			}
+		}
+	case Seconds, Timestamp:
+		switch {
+		case a < 1e-6:
+			scale, suf = 1e-9, "ns"
+		case a < 1e-3:
+			scale, suf = 1e-6, "µs"
+		case a < 1:
+			scale, suf = 1e-3, "ms"
+		default:
+			suf = "s"
+		}
+	default:
+		for _, p := range []struct {
+			s float64
+			n string
+		}{{1e12, "T"}, {1e9, "G"}, {1e6, "M"}, {1e3, "k"}} {
+			if a >= p.s {
+				scale, suf = p.s, p.n
+				break
+			}
+		}
+	}
+	// Round away scaling noise (0.00015/1e-6 = 150.00000000000003), then
+	// print the shortest exact form.
+	r, _ := strconv.ParseFloat(strconv.FormatFloat(a/scale, 'g', 12, 64), 64)
+	s := strconv.FormatFloat(r, 'f', -1, 64) + suf
+	if v < 0 {
+		return Minus + s
+	}
+	return s
+}
+
 // Count formats a number of observations: whole counts below 10k without
 // decimals ("2", "765"), anything else like SI ("12.3k", "1.50").
 func Count(v float64) string {

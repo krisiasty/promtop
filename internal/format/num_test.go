@@ -168,3 +168,31 @@ func TestCount(t *testing.T) {
 		}
 	}
 }
+
+func TestBound(t *testing.T) {
+	for _, c := range []struct {
+		v    float64
+		u    Unit
+		want string
+	}{
+		{0, Seconds, "0"},
+		{0.00015, Seconds, "150µs"},
+		{0.00125, Seconds, "1.25ms"},
+		{9.999e-7, Seconds, "999.9ns"},
+		{1800, Seconds, "1800s"},
+		{-0.005, Seconds, Minus + "5ms"},
+		{1280, Bytes, "1.25Ki"},
+		{512, Bytes, "512B"},
+		{1 << 40, Bytes, "1Ti"},
+		{0.0125, None, "0.0125"},
+		{1e-5, None, "0.00001"},
+		{10010, None, "10.01k"},
+		{1.23456e12, None, "1.23456T"},
+		{math.NaN(), None, "—"},
+		{math.Inf(1), None, "+Inf"},
+	} {
+		if got := Bound(c.v, c.u); got != c.want {
+			t.Errorf("Bound(%v, %v) = %q, want %q", c.v, c.u, got, c.want)
+		}
+	}
+}
