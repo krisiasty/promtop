@@ -110,7 +110,9 @@ func Bound(v float64, u Unit) string {
 	case v == 0:
 		return "0"
 	}
-	a := math.Abs(v)
+	// Round away float noise before choosing the unit, so 0.9999999999999999
+	// is "1s", not "1000ms".
+	a := round12(math.Abs(v))
 	scale, suf := 1.0, ""
 	switch u {
 	case Bytes:
@@ -146,14 +148,19 @@ func Bound(v float64, u Unit) string {
 			}
 		}
 	}
-	// Round away scaling noise (0.00015/1e-6 = 150.00000000000003), then
+	// Round away scaling noise (0.00015/1e-6 = 150.00000000000003) too, then
 	// print the shortest exact form.
-	r, _ := strconv.ParseFloat(strconv.FormatFloat(a/scale, 'g', 12, 64), 64)
-	s := strconv.FormatFloat(r, 'f', -1, 64) + suf
+	s := strconv.FormatFloat(round12(a/scale), 'f', -1, 64) + suf
 	if v < 0 {
 		return Minus + s
 	}
 	return s
+}
+
+// round12 rounds v to 12 significant digits.
+func round12(v float64) float64 {
+	r, _ := strconv.ParseFloat(strconv.FormatFloat(v, 'g', 12, 64), 64)
+	return r
 }
 
 // Count formats a number of observations: whole counts below 10k without

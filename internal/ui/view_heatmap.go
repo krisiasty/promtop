@@ -180,7 +180,10 @@ func (m *Model) viewHeatmap(lay layout) body {
 	if wide {
 		bb := box{w: pw, pad: 1, title: "buckets · " + scope, titleStyle: th.dim, border: th.line}
 		in := bb.inner()
-		barW := clamp(in-rw-1-7-6, 0, 20) // keep the count column at 6 cells (5 + gap) even when the panel is narrow
+		// The count column keeps 6 cells (5 + gap) even when the panel is
+		// narrow: the bar gives way first, then the range label.
+		labW := min(rw, in-1-7-6)
+		barW := clamp(in-labW-1-7-6, 0, 20)
 		for k, c := range tb[:nb] {
 			bar, pct := "", "0.0%"
 			if c > 0 && most > 0 {
@@ -192,8 +195,8 @@ func (m *Model) viewHeatmap(lay layout) body {
 			case tot > 0:
 				pct = strconv.FormatFloat(c/tot*100, 'f', 1, 64) + "%"
 			}
-			bb.lines = append(bb.lines, (&row{}).left(bucketRange(d.LE, k, src.Unit), rw, th.prev).space(1).left(bar, barW, th.cyan).
-				right(pct, 7, th.stat).right(format.Count(c), in-rw-1-barW-7, th.dim).String(in))
+			bb.lines = append(bb.lines, (&row{}).left(bucketRange(d.LE, k, src.Unit), labW, th.prev).space(1).left(bar, barW, th.cyan).
+				right(pct, 7, th.stat).right(format.Count(c), in-labW-1-barW-7, th.dim).String(in))
 		}
 		if hidden > 0 { // the panel lists buckets upwards: the dropped ones are last
 			bb.lines = append(bb.lines, (&row{}).add("▼ "+strconv.Itoa(hidden)+" more buckets", th.dim).String(in))

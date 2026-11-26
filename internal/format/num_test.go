@@ -190,6 +190,10 @@ func TestBound(t *testing.T) {
 		{1.23456e12, None, "1.23456T"},
 		{math.NaN(), None, "—"},
 		{math.Inf(1), None, "+Inf"},
+		{0.0009999999999999998, Seconds, "1ms"}, // float noise just under a unit threshold
+		{0.9999999999999999, Seconds, "1s"},
+		{999.9999999999999, None, "1k"},
+		{1023.9999999999999, Bytes, "1Ki"},
 	} {
 		if got := Bound(c.v, c.u); got != c.want {
 			t.Errorf("Bound(%v, %v) = %q, want %q", c.v, c.u, got, c.want)

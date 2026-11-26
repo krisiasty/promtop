@@ -496,3 +496,32 @@ func TestHeatmapPanelNaNBucket(t *testing.T) {
 		}
 	}
 }
+
+// At the narrowest panel (w=142, pw=40) the widest range labels give way to
+// the count column, which keeps its 6 cells.
+func TestHeatmapNarrowPanelWideLabels(t *testing.T) {
+	f := newFixture(t, 0)
+	for i := range 3 {
+		f.apply(fmt.Sprintf("# TYPE h histogram\nh_bucket{le=\"1.234567891e11\"} %d\nh_bucket{le=\"1.234567891e12\"} %d\nh_bucket{le=\"+Inf\"} %d\nh_sum 1\nh_count %d\n",
+			0, 12345*i, 12345*i, 12345*i))
+	}
+	m := f.model(142, 36)
+	m.view = ViewHeatmap
+	out := m.render()
+	assertFrame(t, out, 142, 36)
+	seen := false
+	for _, ln := range plainLines(out) {
+		if !strings.Contains(ln, "%") { // the panel's bucket rows
+			continue
+		}
+		if strings.HasSuffix(strings.TrimRight(ln, " "), "24.7k │") {
+			seen = true
+		}
+		if strings.Contains(ln, "… │") {
+			t.Errorf("count column truncated: %q", ln)
+		}
+	}
+	if !seen {
+		t.Errorf("no panel row shows the 24.7k count:\n%s", plain(out))
+	}
+}
